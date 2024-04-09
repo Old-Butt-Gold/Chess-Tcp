@@ -5,12 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Icon="../Assets/icon.ico">
+        Title="Chess" SizeToContent="Height" Width="600" Icon="../Assets/icon.ico" 
+        Background="#101010" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <ImageBrush x:Key="BackgroundImage" ImageSource="../Assets/Board.png"/>
     </Window.Resources>
-    
-    <Grid Background="{StaticResource BackgroundImage}">
+    <Viewbox>
+        <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600">
 
-    </Grid>
+            <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality" />
+        </Grid>
+    </Viewbox>
+    
 </Window>

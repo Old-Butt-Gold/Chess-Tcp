@@ -52,8 +52,6 @@ public class Board
             this[1, i] = new Pawn(Player.Black);
             this[6, i] = new Pawn(Player.White);
         }
-        
-        
     }
 
     public static bool IsInside(Position position)
