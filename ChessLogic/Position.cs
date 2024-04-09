@@ -10,10 +10,7 @@ public class Position : IEquatable<Position>
 
     public Position(int row, int column) => (Row, Column) = (row, column);
 
-    public Player SquareColor()
-    {
-        return Row + Column % 2 is 0 ? Player.White : Player.Black;
-    }
+    public Player SquareColor() => Row + Column % 2 is 0 ? Player.White : Player.Black;
 
     public bool Equals(Position? other)
     {
