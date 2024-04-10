@@ -7,13 +7,15 @@
         mc:Ignorable="d"
         Title="Chess" SizeToContent="Height" Width="600" Icon="../Assets/icon.ico" 
         Background="#101010" WindowStartupLocation="CenterScreen">
+    
     <Window.Resources>
         <ImageBrush x:Key="BackgroundImage" ImageSource="../Assets/Board.png"/>
     </Window.Resources>
     <Viewbox>
-        <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600">
-
-            <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality" />
+        <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600" MouseDown="BoardGrid_OnMouseDown">
+            <UniformGrid Name="HighLightGrid" Rows="8" Columns="8" ZIndex="1" />
+            
+            <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality" ZIndex="0" />
         </Grid>
     </Viewbox>
     
