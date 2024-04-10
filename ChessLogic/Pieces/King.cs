@@ -35,12 +35,7 @@ public class King : Piece
             {
                 var to = from + direction;
 
-                if (!Board.IsInside(to))
-                {
-                    continue;
-                }
-
-                if (board.IsEmpty(to) || board[to].Color != Color)
+                if (Board.IsInside(to) && (board.IsEmpty(to) || board[to].Color != Color))
                 {
                     yield return to;
                 }

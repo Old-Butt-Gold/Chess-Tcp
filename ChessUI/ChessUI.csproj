@@ -45,6 +45,7 @@
       <Resource Include="Assets\RookB.png" />
       <None Remove="Assets\RookW.png" />
       <Resource Include="Assets\RookW.png" />
+      <None Remove="Assets\1.cur" />
     </ItemGroup>
 
 </Project>

@@ -39,4 +39,9 @@ public abstract class Piece
             }
         }
     }
+
+    public virtual bool CanCaptureOpponentKing(Position from, Board board)
+    {
+        return GetMoves(from, board).Any(move => board[move.ToPos] is { Type: PieceType.King }); 
+    }
 }

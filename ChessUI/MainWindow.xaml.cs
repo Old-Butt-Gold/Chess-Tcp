@@ -35,9 +35,27 @@ public partial class MainWindow
                 Image image = new Image();
                 _pieceImages[i, j] = image;
                 
-                /*StackPanel stackPanel = new StackPanel
+                /*LinearGradientBrush gradientBrush = new LinearGradientBrush();
+                gradientBrush.StartPoint = new Point(0, 0);
+                gradientBrush.EndPoint = new Point(1, 1);
+
+                if ((i + j) % 2 == 0)
                 {
-                    Background = (i + j) % 2 == 0 ? Brushes.Black :  Brushes.White,
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(230, 179, 134), 0)); // Светло-коричневый
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(139, 87, 42), 0.5)); // Темно-коричневый
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(255, 228, 196), 1)); // Песочный
+                }
+                else
+                {
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(139, 87, 42), 0)); // Темно-коричневый
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(230, 179, 134), 0.5)); // Светло-коричневый
+                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(255, 228, 196), 1)); // Песочный
+                }
+                
+                StackPanel stackPanel = new StackPanel
+                {
+                    //Background = (i + j) % 2 == 0 ? Brushes.Black :  Brushes.White,
+                    Background = gradientBrush,
                 };
                 stackPanel.Children.Add(image);
                 PieceGrid.Children.Add(stackPanel);*/ //цвета своего стиля, ZIndex перекрывает как надо
@@ -80,6 +98,16 @@ public partial class MainWindow
         }
         else
         {
+            /*var moves = _gameState.LegalMovesForPieces(position);
+            if (moves.Any())
+            {
+                HideHighlights();
+                _selectedPosition = position;
+                CacheMoves(moves);
+                ShowHighlights();
+                return;
+            }*/
+            
             _selectedPosition = null;
             HideHighlights();
 
@@ -116,7 +144,7 @@ public partial class MainWindow
 
     void ShowHighlights()
     {
-        Color color = Color.FromArgb(150, 125, 255, 125);
+        Color color = Color.FromArgb(150, 125, 255, 125); //в глоб цвет
 
         foreach (var to in _movesCache.Keys)
         {

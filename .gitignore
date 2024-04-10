@@ -6,10 +6,10 @@ project.lock.json
 nupkg/
 
 # Visual Studio Code
-.vscode
+.vscode/
 
 # Rider
-.idea
+.idea/
 
 # User-specific files
 *.suo

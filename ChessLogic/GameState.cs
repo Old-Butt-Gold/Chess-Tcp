@@ -20,9 +20,10 @@ public class GameState
         {
             return Enumerable.Empty<Move>();
         }
-
+        
         Piece piece = Board[position];
-        return piece.GetMoves(position, Board);
+        IEnumerable<Move> moveCandidates = piece.GetMoves(position, Board);
+        return moveCandidates.Where(move => move.IsLegal(Board));
     }
 
     public void MakeMove(Move move)

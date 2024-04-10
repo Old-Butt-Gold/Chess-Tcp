@@ -39,13 +39,6 @@ public static class Images
         })!;
     }
 
-    public static ImageSource GetImage(Piece piece)
-    {
-        if (piece is null)
-        {
-            return null;
-        }
-
-        return GetImage(piece.Color, piece.Type);
-    }
+    public static ImageSource GetImage(Piece piece) 
+        => piece is null ? null : GetImage(piece.Color, piece.Type);
 }

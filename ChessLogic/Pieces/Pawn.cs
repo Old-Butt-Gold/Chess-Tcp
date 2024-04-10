@@ -74,4 +74,10 @@ public class Pawn : Piece
     {
         return ForwardMoves(from, board).Concat(DiagonalMoves(from, board));
     }
+
+    public override bool CanCaptureOpponentKing(Position from, Board board)
+    {
+        return DiagonalMoves(from, board).Any(move => board[move.ToPos] is { Type: PieceType.King }); 
+        //can hit only by diagonal
+    }
 }

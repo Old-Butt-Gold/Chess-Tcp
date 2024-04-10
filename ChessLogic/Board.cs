@@ -58,4 +58,42 @@ public class Board
     {
         return position.Row is >= 0 and < 8 && position.Column is >= 0 and < 8;
     }
+
+    IEnumerable<Position> PiecePositions()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                Position pos = new(i, j);
+                if (!IsEmpty(pos))
+                {
+                    yield return pos;
+                }
+            }
+        }
+    }
+
+    public IEnumerable<Position> PiecePositionsFor(Player player)
+    {
+        return PiecePositions().Where(position => this[position].Color == player);
+    }
+
+    public bool IsInCheck(Player player)
+    {
+        return PiecePositionsFor(player.Opponent()).Any(position => this[position].CanCaptureOpponentKing(position, this));
+    }
+
+    public Board Copy()
+    {
+        Board copy = new();
+
+        foreach (var position in PiecePositions())
+        {
+            copy[position] = this[position].Copy();
+        }
+
+        return copy;
+    }
+
 }
