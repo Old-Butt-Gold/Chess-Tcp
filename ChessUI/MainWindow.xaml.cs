@@ -2,9 +2,11 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ChessLogic;
 using ChessLogic.Moves;
+using ChessLogic.Pieces;
 
 namespace ChessUI;
 
@@ -30,7 +32,16 @@ public partial class MainWindow
         HideHighlights();
         _movesCache.Clear();
         _gameState = new GameState(Player.White, Board.Initial());
-        DrawBoard(_gameState.Board);
+        
+        //Отрисовка доски
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                _pieceImages[i, j].Source = Images.GetImage(_gameState.Board[i, j]);
+            }
+        }
+        
         SetCursor(_gameState.CurrentPlayer);
     }
 
@@ -43,27 +54,10 @@ public partial class MainWindow
                 Image image = new Image();
                 _pieceImages[i, j] = image;
                 
-                /*LinearGradientBrush gradientBrush = new LinearGradientBrush();
-                gradientBrush.StartPoint = new Point(0, 0);
-                gradientBrush.EndPoint = new Point(1, 1);
-
-                if ((i + j) % 2 == 0)
-                {
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(230, 179, 134), 0)); // Светло-коричневый
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(139, 87, 42), 0.5)); // Темно-коричневый
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(255, 228, 196), 1)); // Песочный
-                }
-                else
-                {
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(139, 87, 42), 0)); // Темно-коричневый
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(230, 179, 134), 0.5)); // Светло-коричневый
-                    gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(255, 228, 196), 1)); // Песочный
-                }
                 
-                StackPanel stackPanel = new StackPanel
+                /*StackPanel stackPanel = new StackPanel
                 {
-                    //Background = (i + j) % 2 == 0 ? Brushes.Black :  Brushes.White,
-                    Background = gradientBrush,
+                    Background = (i + j) % 2 == 0 ? Brushes.Black :  Brushes.White,
                 };
                 stackPanel.Children.Add(image);
                 PieceGrid.Children.Add(stackPanel);*/ //цвета своего стиля, ZIndex перекрывает как надо
@@ -73,17 +67,6 @@ public partial class MainWindow
                 Rectangle rectangle = new Rectangle();
                 _highLights[i, j] = rectangle;
                 HighLightGrid.Children.Add(rectangle);
-            }
-        }
-    }
-
-    void DrawBoard(Board board)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                _pieceImages[i, j].Source = Images.GetImage(board[i, j]);
             }
         }
     }
@@ -126,15 +109,45 @@ public partial class MainWindow
 
             if (_movesCache.TryGetValue(position, out var move))
             {
-                HandleMove(move);
+                if (move.Type == MoveType.PawnPromotion)
+                {
+                    HandlePromotion(move.FromPos, move.ToPos);
+                }
+                else
+                {
+                    HandleMove(move);
+                }
+                
             }
         }
+    }
+
+    void HandlePromotion(Position from, Position to)
+    {
+        //TODO убрать?
+        _pieceImages[to.Row, to.Column].Source = Images.GetImage(_gameState.CurrentPlayer, PieceType.Pawn);
+        _pieceImages[from.Row, from.Column].Source = null;
+
+        PromotionMenu promotionMenu = new PromotionMenu(_gameState.CurrentPlayer);
+        MenuContainer.Content = promotionMenu;
+
+        promotionMenu.PieceSelected += type =>
+        {
+            MenuContainer.Content = null;
+            Move promMove = new PawnPromotion(from, to, type);
+            HandleMove(promMove);
+        };
     }
 
     void HandleMove(Move move)
     {
         _gameState.MakeMove(move);
-        DrawBoard(_gameState.Board);
+        
+        _pieceImages[move.FromPos.Row, move.FromPos.Column].Source = Images.GetImage(_gameState.Board[move.FromPos]);
+        _pieceImages[move.ToPos.Row, move.ToPos.Column].Source = Images.GetImage(_gameState.Board[move.ToPos]);
+        
+        //DrawBoard(_gameState.Board);
+        
         SetCursor(_gameState.CurrentPlayer);
         
         if (_gameState.IsGameOver())

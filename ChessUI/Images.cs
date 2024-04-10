@@ -29,7 +29,7 @@ public static class Images
         { PieceType.King, LoadImage("./Assets/KingB.png")},
     };
 
-    static ImageSource GetImage(Player color, PieceType type)
+    public static ImageSource GetImage(Player color, PieceType type)
     {
         return (color switch
         {
