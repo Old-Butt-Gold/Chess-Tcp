@@ -1,5 +1,6 @@
 ﻿using ChessLogic.Moves;
 using ChessLogic.Pieces;
+using ChessLogic.ResultReasons;
 
 namespace ChessLogic;
 
@@ -7,11 +8,19 @@ public class GameState
 {
     public Board Board { get; }
     public Player CurrentPlayer { get; private set; }
+    public Result Result { get; private set; }
 
     public GameState(Player player, Board board)
     {
         CurrentPlayer = player;
         Board = board;
+    }
+    
+    public void MakeMove(Move move)
+    {
+        move.Execute(Board);
+        CurrentPlayer = CurrentPlayer.Opponent();
+        CheckForGameOver();
     }
 
     public IEnumerable<Move> LegalMovesForPieces(Position position)
@@ -26,9 +35,22 @@ public class GameState
         return moveCandidates.Where(move => move.IsLegal(Board));
     }
 
-    public void MakeMove(Move move)
+    IEnumerable<Move> AllLegalMovesFor(Player player)
     {
-        move.Execute(Board);
-        CurrentPlayer = CurrentPlayer.Opponent();
+        var moveCandidates = Board.PiecePositionsFor(player).SelectMany(position => Board[position].GetMoves(position, Board));
+
+        return moveCandidates.Where(move => move.IsLegal(Board));
     }
+
+    void CheckForGameOver()
+    {
+        if (!AllLegalMovesFor(CurrentPlayer).Any())
+        {
+            Result = Board.IsInCheck(CurrentPlayer) 
+                ? Result.Win(CurrentPlayer.Opponent()) 
+                : Result.Draw(EndReason.Stalemate);
+        }
+    }
+
+    public bool IsGameOver() => Result != null;
 }
