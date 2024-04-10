@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ChessLogic;
 using ChessLogic.Moves;
@@ -33,16 +32,19 @@ public partial class MainWindow
         _movesCache.Clear();
         _gameState = new GameState(Player.White, Board.Initial());
         
-        //Отрисовка доски
+        DrawBoard(_gameState.Board);
+        SetCursor(_gameState.CurrentPlayer);
+    }
+
+    void DrawBoard(Board board)
+    {
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
-                _pieceImages[i, j].Source = Images.GetImage(_gameState.Board[i, j]);
+                _pieceImages[i, j].Source = Images.GetImage(board[i, j]);
             }
         }
-        
-        SetCursor(_gameState.CurrentPlayer);
     }
 
     void InitializeBoard()
@@ -142,11 +144,17 @@ public partial class MainWindow
     void HandleMove(Move move)
     {
         _gameState.MakeMove(move);
-        
-        _pieceImages[move.FromPos.Row, move.FromPos.Column].Source = Images.GetImage(_gameState.Board[move.FromPos]);
-        _pieceImages[move.ToPos.Row, move.ToPos.Column].Source = Images.GetImage(_gameState.Board[move.ToPos]);
-        
-        //DrawBoard(_gameState.Board);
+        //Лучше по памяти, но можно убрать в целом
+        if (move.Type != MoveType.CastleKS && move.Type != MoveType.CastleQS)
+        {
+            _pieceImages[move.FromPos.Row, move.FromPos.Column].Source =
+                Images.GetImage(_gameState.Board[move.FromPos]);
+            _pieceImages[move.ToPos.Row, move.ToPos.Column].Source = Images.GetImage(_gameState.Board[move.ToPos]);
+        }
+        else
+        {
+            DrawBoard(_gameState.Board);
+        }
         
         SetCursor(_gameState.CurrentPlayer);
         
