@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class Position : IEquatable<Position>
 {
