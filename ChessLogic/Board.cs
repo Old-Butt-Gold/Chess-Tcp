@@ -6,6 +6,16 @@ public class Board
 {
     readonly Piece[,] _pieces = new Piece[8, 8];
 
+    readonly Dictionary<Player, Position> _pawnSkipPositions = new()
+    {
+        { Player.White , null},
+        { Player.Black , null},
+    };
+    
+    public Position GetPawnSkipPosition(Player player) => _pawnSkipPositions[player];
+
+    public void SetPawnSkipPosition(Player player, Position position) => _pawnSkipPositions[player] = position;
+
     public Piece this[int row, int col]
     {
         get => _pieces[row, col];
@@ -17,6 +27,8 @@ public class Board
         get => this[position.Row, position.Column];
         set => this[position.Row, position.Column] = value;
     }
+
+    
     
     public bool IsEmpty(Position position) => this[position] is null;
 

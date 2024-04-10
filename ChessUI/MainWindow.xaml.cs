@@ -144,18 +144,8 @@ public partial class MainWindow
     void HandleMove(Move move)
     {
         _gameState.MakeMove(move);
-        //Лучше по памяти, но можно убрать в целом
-        if (move.Type != MoveType.CastleKS && move.Type != MoveType.CastleQS)
-        {
-            _pieceImages[move.FromPos.Row, move.FromPos.Column].Source =
-                Images.GetImage(_gameState.Board[move.FromPos]);
-            _pieceImages[move.ToPos.Row, move.ToPos.Column].Source = Images.GetImage(_gameState.Board[move.ToPos]);
-        }
-        else
-        {
-            DrawBoard(_gameState.Board);
-        }
         
+        DrawBoard(_gameState.Board);
         SetCursor(_gameState.CurrentPlayer);
         
         if (_gameState.IsGameOver())

@@ -70,7 +70,7 @@ public class Pawn : Piece
 
             if (!HasMoved && CanMoveTo(twoMovesPos, board))
             {
-                yield return new NormalMove(from, twoMovesPos);
+                yield return new DoublePawnMove(from, twoMovesPos);
             }
         }
     }
@@ -81,7 +81,11 @@ public class Pawn : Piece
         {
             Position to = from + Forward + direction; //Уже задано North или South в Forward
 
-            if (CanCaptureAt(to, board))
+            if (to == board.GetPawnSkipPosition(Color.Opponent()))
+            {
+                yield return new EnPassantMove(from, to);
+            }
+            else if (CanCaptureAt(to, board))
             {
                 if (to.Row is 0 or 7)
                 {
