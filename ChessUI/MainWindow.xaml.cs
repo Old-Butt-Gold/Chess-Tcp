@@ -15,13 +15,21 @@ public partial class MainWindow
     readonly Dictionary<Position, Move> _movesCache = new();
 
     Position? _selectedPosition;
-    GameState _gameState = new(Player.White, Board.Initial());
+    GameState _gameState;
     
     public MainWindow()
     {
         InitializeComponent();
         InitializeBoard();
+        
+        PrepareBoard();
+    }
 
+    void PrepareBoard()
+    {
+        HideHighlights();
+        _movesCache.Clear();
+        _gameState = new GameState(Player.White, Board.Initial());
         DrawBoard(_gameState.Board);
         SetCursor(_gameState.CurrentPlayer);
     }
@@ -82,6 +90,11 @@ public partial class MainWindow
 
     void BoardGrid_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (IsMenuOnScreen())
+        {
+            return;
+        }
+        
         Point point = e.GetPosition(BoardGrid);
         var position = ToSquarePosition(point);
 
@@ -123,6 +136,11 @@ public partial class MainWindow
         _gameState.MakeMove(move);
         DrawBoard(_gameState.Board);
         SetCursor(_gameState.CurrentPlayer);
+        
+        if (_gameState.IsGameOver())
+        {
+            ShowGameOver();
+        }
     }
 
     Position ToSquarePosition(Point point)
@@ -163,5 +181,26 @@ public partial class MainWindow
     void SetCursor(Player player)
     {
         Cursor = player == Player.White ? ChessCursors.WhiteCursor : ChessCursors.BlackCursor;
+    }
+
+    bool IsMenuOnScreen() => MenuContainer.Content != null;
+
+    void ShowGameOver()
+    {
+        GameOverMenu gameOverMenu = new GameOverMenu(_gameState);
+        MenuContainer.Content = gameOverMenu;
+        gameOverMenu.OptionSelected += option =>
+        {
+            if (option == Option.Restart)
+            {
+                PrepareBoard();
+                MenuContainer.Content = null;
+            }
+            else
+            {
+                Application.Current.Shutdown();
+            }
+        };
+        
     }
 }

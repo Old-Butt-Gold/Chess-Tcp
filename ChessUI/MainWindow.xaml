@@ -11,11 +11,14 @@
     <Window.Resources>
         <ImageBrush x:Key="BackgroundImage" ImageSource="../Assets/Board.png"/>
     </Window.Resources>
+    
     <Viewbox>
         <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600" MouseDown="BoardGrid_OnMouseDown">
             <UniformGrid Name="HighLightGrid" Rows="8" Columns="8" ZIndex="1" />
             
             <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality" ZIndex="0" />
+            
+            <ContentControl Name="MenuContainer" />
         </Grid>
     </Viewbox>
     
