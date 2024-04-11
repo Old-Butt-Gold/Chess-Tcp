@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Input;
 using ChessLogic;
 using ChessLogic.Pieces;
@@ -12,29 +13,30 @@ public partial class PromotionMenu
     {
         InitializeComponent();
 
-        QueenImg.Source = Images.GetImage(player, PieceType.Queen);
-        BishopImg.Source = Images.GetImage(player, PieceType.Bishop);
-        RookImg.Source = Images.GetImage(player, PieceType.Rook);
-        KnightImg.Source = Images.GetImage(player, PieceType.Knight);
+        ImgQueen.Source = Images.GetImage(player, PieceType.Queen);
+        ImgBishop.Source = Images.GetImage(player, PieceType.Bishop);
+        ImgRook.Source = Images.GetImage(player, PieceType.Rook);
+        ImgKnight.Source = Images.GetImage(player, PieceType.Knight);
     }
 
-    private void QueenImg_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void Queen_Click(object sender, RoutedEventArgs e)
     {
         PieceSelected?.Invoke(PieceType.Queen);
     }
 
-    private void BishopImg_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void Bishop_Click(object sender, RoutedEventArgs e)
     {
         PieceSelected?.Invoke(PieceType.Bishop);
     }
 
-    private void RookImg_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void Rook_Click(object sender, RoutedEventArgs e)
     {
         PieceSelected?.Invoke(PieceType.Rook);
     }
 
-    private void KnightImg_OnMouseDown(object sender, MouseButtonEventArgs e)
+    private void Knight_Click(object sender, RoutedEventArgs e)
     {
         PieceSelected?.Invoke(PieceType.Knight);
     }
+
 }

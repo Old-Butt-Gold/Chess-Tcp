@@ -27,8 +27,6 @@ public class Board
         get => this[position.Row, position.Column];
         set => this[position.Row, position.Column] = value;
     }
-
-    
     
     public bool IsEmpty(Position position) => this[position] is null;
 

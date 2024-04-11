@@ -9,6 +9,7 @@ public class Pawn : Piece
 
     readonly Direction Forward;
 
+    //Для сети поменять только это и Board.Initial()
     public Pawn(Player color)
     {
         Color = color;

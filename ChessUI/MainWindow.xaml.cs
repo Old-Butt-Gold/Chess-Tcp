@@ -23,11 +23,12 @@ public partial class MainWindow
         InitializeComponent();
         InitializeBoard();
         
-        PrepareBoard();
+        ReloadBoard();
     }
 
-    void PrepareBoard()
+    void ReloadBoard()
     {
+        _selectedPosition = null;
         HideHighlights();
         _movesCache.Clear();
         _gameState = new GameState(Player.White, Board.Initial());
@@ -204,7 +205,7 @@ public partial class MainWindow
         {
             if (option == Option.Restart)
             {
-                PrepareBoard();
+                ReloadBoard();
                 MenuContainer.Content = null;
             }
             else
@@ -213,5 +214,28 @@ public partial class MainWindow
             }
         };
         
+    }
+
+    void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!IsMenuOnScreen() && e.Key == Key.Escape)
+        {
+            ShowPauseMenu();
+        } 
+    }
+
+    void ShowPauseMenu()
+    {
+        PauseMenu pauseMenu = new();
+        MenuContainer.Content = pauseMenu;
+
+        pauseMenu.OptionSelected += option =>
+        {
+            MenuContainer.Content = null;
+            if (option == Option.Restart)
+            {
+                ReloadBoard();
+            }
+        };
     }
 }
