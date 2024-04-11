@@ -8,7 +8,7 @@ public abstract class Move
     public abstract Position FromPos { get; }
     public abstract Position ToPos { get; }
 
-    public abstract void Execute(Board board);
+    public abstract bool Execute(Board board); //bool для 50 ходов
 
     public virtual bool IsLegal(Board board) //perfect for normal Move
     {

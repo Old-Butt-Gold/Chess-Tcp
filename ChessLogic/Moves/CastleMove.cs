@@ -34,10 +34,12 @@ public class CastleMove : Move
         }
     }
     
-    public override void Execute(Board board)
+    public override bool Execute(Board board)
     {
         new NormalMove(FromPos, ToPos).Execute(board);
         new NormalMove(RookFromPos, RookToPos).Execute(board);
+
+        return false;
     }
 
     public override bool IsLegal(Board board)

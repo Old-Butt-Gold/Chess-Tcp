@@ -13,7 +13,7 @@ public class PawnPromotion : Move
 
     readonly PieceType _newType;
     
-    public override void Execute(Board board)
+    public override bool Execute(Board board)
     {
         Piece pawn = board[FromPos];
         board[FromPos] = null;
@@ -22,6 +22,7 @@ public class PawnPromotion : Move
         promotionPiece.HasMoved = true;
         board[ToPos] = promotionPiece;
 
+        return true;
         
         Piece CreatePromotionPiece(Player color) =>
             _newType switch

@@ -16,11 +16,13 @@ public class DoublePawnMove : Move
         _skippedPosition = new Position((fromPos.Row + toPos.Row) / 2, fromPos.Column);
     }
 
-    public override void Execute(Board board)
+    public override bool Execute(Board board)
     {
         Player player = board[FromPos].Color;
         board.SetPawnSkipPosition(player, _skippedPosition);
 
         new NormalMove(FromPos, ToPos).Execute(board);
+
+        return true;
     }
 }
