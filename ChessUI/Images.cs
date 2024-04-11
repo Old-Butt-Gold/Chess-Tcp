@@ -1,6 +1,7 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ChessLogic;
+using ChessLogic.CoordinateClasses;
 using ChessLogic.Pieces;
 
 namespace ChessUI;

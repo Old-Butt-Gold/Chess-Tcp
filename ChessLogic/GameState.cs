@@ -1,4 +1,5 @@
-﻿using ChessLogic.Moves;
+﻿using ChessLogic.CoordinateClasses;
+using ChessLogic.Moves;
 using ChessLogic.Pieces;
 using ChessLogic.ResultReasons;
 
@@ -48,8 +49,13 @@ public class GameState
         if (!AllLegalMovesFor(CurrentPlayer).Any())
         {
             Result = Board.IsInCheck(CurrentPlayer) 
-                ? Result.Win(CurrentPlayer.Opponent()) 
-                : Result.Draw(EndReason.Stalemate);
+                ? new(CurrentPlayer.Opponent(), EndReason.Checkmate) 
+                : new(Player.None, EndReason.Stalemate);
+        }
+
+        if (Board.InsufficientMaterial())
+        {
+            Result = new Result(CurrentPlayer, EndReason.InsufficientMaterial);
         }
     }
 

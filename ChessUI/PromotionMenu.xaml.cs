@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using ChessLogic;
+using ChessLogic.CoordinateClasses;
 using ChessLogic.Pieces;
 
 namespace ChessUI;

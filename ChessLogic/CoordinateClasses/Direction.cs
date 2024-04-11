@@ -1,4 +1,4 @@
-﻿namespace ChessLogic;
+﻿namespace ChessLogic.CoordinateClasses;
 
 public class Direction
 {

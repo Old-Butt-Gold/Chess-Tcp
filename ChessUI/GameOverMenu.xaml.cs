@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using ChessLogic;
+using ChessLogic.CoordinateClasses;
 using ChessLogic.ResultReasons;
 
 namespace ChessUI;

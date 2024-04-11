@@ -1,3 +1,5 @@
+using ChessLogic.CoordinateClasses;
+
 namespace ChessLogic.Moves;
 
 public class CastleMove : Move

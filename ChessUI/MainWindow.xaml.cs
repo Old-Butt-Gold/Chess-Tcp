@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using ChessLogic;
+using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
 

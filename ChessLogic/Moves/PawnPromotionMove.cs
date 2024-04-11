@@ -1,3 +1,4 @@
+using ChessLogic.CoordinateClasses;
 using ChessLogic.Pieces;
 
 namespace ChessLogic.Moves;
