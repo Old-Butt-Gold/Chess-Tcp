@@ -12,11 +12,17 @@ public class GameState
     public Result? Result { get; private set; }
 
     int _noCaptureOrPawnMoves;
+    string _stateString;
+
+    readonly Dictionary<string, int> _stateHistory = new();
 
     public GameState(Player player, Board board)
     {
         CurrentPlayer = player;
         Board = board;
+
+        _stateString = new StateString(CurrentPlayer, board).ToString();
+        _stateHistory[_stateString] = 1;
     }
     
     public void MakeMove(Move move)
@@ -24,9 +30,18 @@ public class GameState
         Board.SetPawnSkipPosition(CurrentPlayer, null);
         bool captureOrPawn = move.Execute(Board);
 
-        _noCaptureOrPawnMoves = captureOrPawn ? 0 : _noCaptureOrPawnMoves + 1;
-        
+        if (captureOrPawn)
+        {
+            _noCaptureOrPawnMoves = 0;
+            _stateHistory.Clear();
+        }
+        else
+        {
+            _noCaptureOrPawnMoves++;
+        }
+
         CurrentPlayer = CurrentPlayer.Opponent();
+        UpdateStateString();
         CheckForGameOver();
     }
 
@@ -67,9 +82,26 @@ public class GameState
         {
             Result = new(Player.None, EndReason.FiftyMoveRule);
         }
+
+        if (ThreefoldRepetition())
+        {
+            Result = new Result(Player.None, EndReason.ThreefoldRepetition);
+        }
     }
 
     public bool IsGameOver() => Result != null;
 
     bool FiftyMoveRule() => _noCaptureOrPawnMoves / 2 == 50; //по 50 на одного игрока
+
+    void UpdateStateString()
+    {
+        _stateString = new StateString(CurrentPlayer, Board).ToString();
+
+        if (!_stateHistory.TryAdd(_stateString, 1))
+        {
+            _stateHistory[_stateString]++;
+        }
+    }
+
+    bool ThreefoldRepetition() => _stateHistory[_stateString] is 3;
 }

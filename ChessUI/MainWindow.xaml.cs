@@ -128,7 +128,6 @@ public partial class MainWindow
 
     void HandlePromotion(Position from, Position to)
     {
-        //TODO убрать?
         _pieceImages[to.Row, to.Column].Source = Images.GetImage(_gameState.CurrentPlayer, PieceType.Pawn);
         _pieceImages[from.Row, from.Column].Source = null;
 
