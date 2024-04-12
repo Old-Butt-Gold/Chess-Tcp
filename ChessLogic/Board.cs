@@ -125,7 +125,7 @@ public class Board
         return IsKingVersusKing(counting) || IsKingBishopVersusKing(counting)
                                           || IsKingKnightVersusKing(counting) || IsKingBishopVersusKingBishop(counting)
                                           || IsKingSolo(counting) || IsKingVersusTwoKnightsKing(counting) ||
-                                          IsKingBishopVersusKingKnight(counting);
+                                          IsKingBishopVersusKingKnight(counting) || IsKingKnightVersusKingKnight(counting);
     }
 
     bool IsKingVersusKing(Counting counting) => counting.TotalCount is 2;
@@ -151,10 +151,12 @@ public class Board
 
         return whiteBishopPos.SquareColor() == blackBishopPos.SquareColor();
     }
+    
+    bool IsKingKnightVersusKingKnight(Counting counting) => counting.TotalCount is 4 && counting.White(PieceType.Knight) == 1 && counting.Black(PieceType.Knight) == 1;
 
     bool IsKingSolo(Counting counting) => counting.TotalCount is 17 && 
-        ((counting.TotalWhite() is 16 && counting.Black(PieceType.King) is 1) ||
-        (counting.TotalBlack() is 16 && counting.White(PieceType.King) is 1));
+                                          ((counting.TotalWhite() is 16 && counting.Black(PieceType.King) is 1) ||
+                                           (counting.TotalBlack() is 16 && counting.White(PieceType.King) is 1));
 
     bool IsKingVersusTwoKnightsKing(Counting counting) => counting.TotalCount is 4 && (counting.White(PieceType.Knight) == 2 || counting.Black(PieceType.Knight) == 2);
 

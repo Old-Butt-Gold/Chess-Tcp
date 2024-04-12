@@ -14,11 +14,11 @@ public partial class PauseMenu : UserControl
 
     private void Restart_OnClick(object sender, RoutedEventArgs e)
     {
-        OptionSelected?.Invoke(Option.Continue);
+        OptionSelected?.Invoke(Option.Restart);
     }
 
     private void Continue_OnClick(object sender, RoutedEventArgs e)
     {
-        OptionSelected?.Invoke(Option.Restart);
+        OptionSelected?.Invoke(Option.Continue);
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -13,10 +13,11 @@ namespace ChessUI;
 public partial class MainWindow
 {
     readonly Image[,] _pieceImages = new Image[8, 8];
-    readonly Rectangle[,] _highLights = new Rectangle[8, 8];
+    readonly Shape[,] _highLights = new Shape[8, 8];
     readonly Dictionary<Position, Move> _movesCache = new();
 
     Position? _selectedPosition;
+    Position? _kingPosition;
     GameState _gameState;
     
     public MainWindow()
@@ -36,6 +37,12 @@ public partial class MainWindow
         
         DrawBoard(_gameState.Board);
         SetCursor(_gameState.CurrentPlayer);
+        
+        _kingPosition = null;
+        foreach (var highLight in _highLights)
+        {
+            highLight.Fill = Brushes.Transparent;
+        }
     }
 
     void DrawBoard(Board board)
@@ -58,19 +65,12 @@ public partial class MainWindow
                 Image image = new Image();
                 _pieceImages[i, j] = image;
                 
-                
-                /*StackPanel stackPanel = new StackPanel
-                {
-                    Background = (i + j) % 2 == 0 ? Brushes.Black :  Brushes.White,
-                };
-                stackPanel.Children.Add(image);
-                PieceGrid.Children.Add(stackPanel);*/ //цвета своего стиля, ZIndex перекрывает как надо
-                
                 PieceGrid.Children.Add(image);
 
-                Rectangle rectangle = new Rectangle();
-                _highLights[i, j] = rectangle;
-                HighLightGrid.Children.Add(rectangle);
+                Ellipse ellipse = new Ellipse();
+                
+                _highLights[i, j] = ellipse;
+                HighLightGrid.Children.Add(ellipse);
             }
         }
     }
@@ -92,22 +92,18 @@ public partial class MainWindow
             if (moves.Any())
             {
                 _selectedPosition = position;
-                CacheMoves(moves);
+                
+                _movesCache.Clear();
+                foreach (var move in moves)
+                {
+                    _movesCache[move.ToPos] = move;
+                }
+                
                 ShowHighlights();
             }
         }
         else
         {
-            /*var moves = _gameState.LegalMovesForPieces(position);
-            if (moves.Any())
-            {
-                HideHighlights();
-                _selectedPosition = position;
-                CacheMoves(moves);
-                ShowHighlights();
-                return;
-            }*/
-            
             _selectedPosition = null;
             HideHighlights();
 
@@ -115,18 +111,41 @@ public partial class MainWindow
             {
                 if (move.Type == MoveType.PawnPromotion)
                 {
-                    HandlePromotion(move.FromPos, move.ToPos);
+                    HandlePromotionMove(move.FromPos, move.ToPos);
                 }
                 else
                 {
                     HandleMove(move);
                 }
-                
+            }
+        }
+        DrawKingCheck();
+    }
+
+    void DrawKingCheck()
+    {
+        if (_gameState.Board.IsInCheck(_gameState.CurrentPlayer))
+        {
+            _kingPosition = _gameState.Board.PiecePositionsFor(_gameState.CurrentPlayer)
+                .First(x => _gameState.Board[x].Type == PieceType.King);
+            Draw(_kingPosition, new SolidColorBrush(Color.FromArgb(100, 245, 39, 65)));
+        }
+        else
+        {
+            Draw(_kingPosition, Brushes.Transparent);
+            _kingPosition = null;
+        }
+
+        void Draw(Position kingPos, Brush brush)
+        {
+            if (kingPos != null)
+            {
+                _highLights[kingPos.Row, kingPos.Column].Fill = brush;
             }
         }
     }
 
-    void HandlePromotion(Position from, Position to)
+    void HandlePromotionMove(Position from, Position to)
     {
         _pieceImages[to.Row, to.Column].Source = Images.GetImage(_gameState.CurrentPlayer, PieceType.Pawn);
         _pieceImages[from.Row, from.Column].Source = null;
@@ -161,15 +180,6 @@ public partial class MainWindow
         int row = (int)(point.Y / squareSize);
         int column = (int)(point.X / squareSize);
         return new Position(row, column);
-    }
-
-    void CacheMoves(IEnumerable<Move> moves)
-    {
-        _movesCache.Clear();
-        foreach (var move in moves)
-        {
-            _movesCache[move.ToPos] = move;
-        }
     }
 
     void ShowHighlights()
