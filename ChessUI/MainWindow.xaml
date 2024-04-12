@@ -4,19 +4,29 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Chess" SizeToContent="Height" Width="600" Icon="../Assets/icon.ico" 
-        Background="#101010" WindowStartupLocation="CenterScreen" KeyDown="MainWindow_OnKeyDown">
+        Background="#101010" WindowStartupLocation="CenterScreen">
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding EscapeMenuCommand}" Key="Escape" />
+    </Window.InputBindings>
     
     <Window.Resources>
         <ImageBrush x:Key="BackgroundImage" ImageSource="../Assets/Board.png"/>
     </Window.Resources>
     
     <Viewbox>
-        <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600" MouseDown="BoardGrid_OnMouseDown">
-            <UniformGrid Name="HighLightGrid" Rows="8" Columns="8" />
+        <Grid Name="BoardGrid" Background="{StaticResource BackgroundImage}" Width="600" Height="600">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding MouseDownCommand}" PassEventArgsToCommand="True"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             
-            <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality" />
+            <UniformGrid Name="HighLightGrid" Rows="8" Columns="8"/>
+            
+            <UniformGrid Name="PieceGrid" Rows="8" Columns="8" RenderOptions.BitmapScalingMode="HighQuality"/>
             
             <ContentControl Name="MenuContainer"/>
         </Grid>

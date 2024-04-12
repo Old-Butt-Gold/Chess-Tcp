@@ -3,7 +3,7 @@ using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
 
-namespace ChessLogic;
+namespace ChessLogic.Bot;
 
 public class StockfishManager : IDisposable
 {
@@ -12,7 +12,7 @@ public class StockfishManager : IDisposable
     int _moveTime;
     int _searchDepth;
     
-    public StockfishManager(string executablePath, DifficultyLevel difficultyLevel)
+    public StockfishManager(string executablePath, BotDifficulty botDifficulty)
     {
         _stockfishProcess.StartInfo.FileName = executablePath;
         _stockfishProcess.StartInfo.UseShellExecute = false;
@@ -21,37 +21,37 @@ public class StockfishManager : IDisposable
         _stockfishProcess.StartInfo.CreateNoWindow = true; // Скрыть окно
         _stockfishProcess.Start();
 
-        SetDifficultyLevel(difficultyLevel);
+        SetDifficultyLevel(botDifficulty);
     }
 
-    void SetDifficultyLevel(DifficultyLevel difficultyLevel)
+    void SetDifficultyLevel(BotDifficulty botDifficulty)
     {
         int skillLevel;
         int threadCount;
-        switch (difficultyLevel)
+        switch (botDifficulty)
         {
-            case DifficultyLevel.Easy:
+            case BotDifficulty.Easy:
                 skillLevel = 1;
                 threadCount = 1;
                 SetSearchDepth(1);
                 SetMoveTime(10);
                 SetHashSize("16");
                 break;
-            case DifficultyLevel.Medium:
+            case BotDifficulty.Medium:
                 skillLevel = 5;
                 threadCount = 2;
                 SetSearchDepth(2);
                 SetMoveTime(20);
                 SetHashSize("64");
                 break;
-            case DifficultyLevel.Hard:
+            case BotDifficulty.Hard:
                 skillLevel = 10;
                 threadCount = 4;
                 SetSearchDepth(3);
                 SetMoveTime(30);
                 SetHashSize("128");
                 break;
-            case DifficultyLevel.Unreal:
+            case BotDifficulty.Unreal:
                 skillLevel = 20;
                 threadCount = 8;
                 SetSearchDepth(5);

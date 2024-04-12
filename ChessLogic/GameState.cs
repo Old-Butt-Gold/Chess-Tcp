@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using ChessLogic.Bot;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
@@ -10,9 +11,9 @@ public class GameState
 {
     static readonly string PathToBot = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "stockfish.exe";
     
-    StockfishManager _stockfishManager = new(PathToBot, DifficultyLevel.Easy);
+    StockfishManager? _stockfishManager;
 
-    public async Task<(Move? move, PieceType? pieceType)> GetBestMoveAsync() => await Task.Run(() => _stockfishManager.GetMoveByStockFish(_stateString, this));
+    public async Task<(Move? move, PieceType? pieceType)> GetBestMoveAsync() => await Task.Run(() => _stockfishManager!.GetMoveByStockFish(_stateString, this));
 
     public Board Board { get; }
     public Player CurrentPlayer { get; private set; }
@@ -30,6 +31,11 @@ public class GameState
 
         _stateString = new StateString(CurrentPlayer, board).ToString();
         _stateHistory[_stateString] = 1;
+    }
+
+    public GameState(Player player, Board board, BotDifficulty botDifficulty) : this(player, board)
+    {
+        _stockfishManager = new StockfishManager(PathToBot, botDifficulty);
     }
     
     public void MakeMove(Move move)
@@ -111,5 +117,4 @@ public class GameState
     }
 
     bool ThreefoldRepetition() => _stateHistory[_stateString] is 3;
-
 }
