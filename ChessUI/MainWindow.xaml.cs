@@ -1,4 +1,4 @@
-﻿﻿using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -7,6 +7,8 @@ using ChessLogic;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
+using Color = System.Windows.Media.Color;
+using Move = ChessLogic.Moves.Move;
 
 namespace ChessUI;
 
@@ -19,6 +21,8 @@ public partial class MainWindow
     Position? _selectedPosition;
     Position? _kingPosition;
     GameState _gameState;
+
+    bool _isEnemyThinking;
     
     public MainWindow()
     {
@@ -55,7 +59,7 @@ public partial class MainWindow
             }
         }
     }
-
+    
     void InitializeBoard()
     {
         for (int i = 0; i < 8; i++)
@@ -67,22 +71,32 @@ public partial class MainWindow
                 
                 PieceGrid.Children.Add(image);
 
-                Ellipse ellipse = new Ellipse();
-                
+                Ellipse ellipse = new Ellipse
+                {
+                    Height = 45,
+                    Width = 45
+                };
+
                 _highLights[i, j] = ellipse;
                 HighLightGrid.Children.Add(ellipse);
+                
             }
         }
     }
 
-    void BoardGrid_OnMouseDown(object sender, MouseButtonEventArgs e)
+    async void BoardGrid_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (IsMenuOnScreen())
         {
             return;
         }
+
+        if (_isEnemyThinking)
+        {
+            return;
+        }
         
-        Point point = e.GetPosition(BoardGrid);
+        Point point = e.GetPosition(PieceGrid);
         var position = ToSquarePosition(point);
 
         if (_selectedPosition is null)
@@ -106,7 +120,7 @@ public partial class MainWindow
         {
             _selectedPosition = null;
             HideHighlights();
-
+            
             if (_movesCache.TryGetValue(position, out var move))
             {
                 if (move.Type == MoveType.PawnPromotion)
@@ -119,7 +133,32 @@ public partial class MainWindow
                 }
             }
         }
+
         DrawKingCheck();
+        
+        if (_gameState.CurrentPlayer == Player.Black)
+        {
+            await HandleBotMoveAsync();
+        }
+    }
+    
+    async Task HandleBotMoveAsync()
+    {
+        _isEnemyThinking = true;
+        await Task.Delay(1000);
+        var result = await _gameState.GetBestMoveAsync();
+        var moveFinal = result.move;
+        var pieceType = result.pieceType;
+        if (moveFinal != null)
+        {
+            if (moveFinal.Type == MoveType.PawnPromotion)
+            {
+                moveFinal = new PawnPromotion(moveFinal.FromPos, moveFinal.ToPos, pieceType!.Value);
+            }
+            HandleMove(moveFinal);
+        }
+        DrawKingCheck();
+        _isEnemyThinking = false;
     }
 
     void DrawKingCheck()
@@ -249,3 +288,4 @@ public partial class MainWindow
         };
     }
 }
+

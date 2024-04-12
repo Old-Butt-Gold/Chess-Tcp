@@ -1,4 +1,5 @@
-﻿using ChessLogic.CoordinateClasses;
+﻿using System.IO;
+using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
 using ChessLogic.ResultReasons;
@@ -7,6 +8,12 @@ namespace ChessLogic;
 
 public class GameState
 {
+    static readonly string PathToBot = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "stockfish.exe";
+    
+    StockfishManager _stockfishManager = new(PathToBot, DifficultyLevel.Easy);
+
+    public async Task<(Move? move, PieceType? pieceType)> GetBestMoveAsync() => await Task.Run(() => _stockfishManager.GetMoveByStockFish(_stateString, this));
+
     public Board Board { get; }
     public Player CurrentPlayer { get; private set; }
     public Result? Result { get; private set; }
@@ -96,7 +103,7 @@ public class GameState
     void UpdateStateString()
     {
         _stateString = new StateString(CurrentPlayer, Board).ToString();
-
+        
         if (!_stateHistory.TryAdd(_stateString, 1))
         {
             _stateHistory[_stateString]++;
@@ -104,4 +111,5 @@ public class GameState
     }
 
     bool ThreefoldRepetition() => _stateHistory[_stateString] is 3;
+
 }
