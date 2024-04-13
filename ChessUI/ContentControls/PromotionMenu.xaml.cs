@@ -1,10 +1,8 @@
 using System.Windows;
-using System.Windows.Input;
-using ChessLogic;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.Pieces;
 
-namespace ChessUI;
+namespace ChessUI.ContentControls;
 
 public partial class PromotionMenu
 {

@@ -10,17 +10,22 @@ public class Pawn : Piece
 
     readonly Direction Forward;
 
-    //TODO для сетей
     public Pawn(Player color)
     {
         Color = color;
         switch (color)
         {
-            case Player.White:
+            case Player.White when !Board.IsBoardReversed:
                 Forward = Direction.North;
                 break;
-            case Player.Black:
+            case Player.White when Board.IsBoardReversed:
                 Forward = Direction.South;
+                break;
+            case Player.Black when !Board.IsBoardReversed:
+                Forward = Direction.South;
+                break;
+            case Player.Black when Board.IsBoardReversed:
+                Forward = Direction.North;
                 break;
         }
     }

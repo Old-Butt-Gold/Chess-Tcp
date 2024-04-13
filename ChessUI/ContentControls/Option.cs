@@ -1,4 +1,4 @@
-namespace ChessUI;
+namespace ChessUI.ContentControls;
 
 public enum Option
 {

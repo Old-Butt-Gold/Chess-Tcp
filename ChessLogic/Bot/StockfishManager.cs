@@ -40,21 +40,21 @@ public class StockfishManager : IDisposable
             case BotDifficulty.Medium:
                 skillLevel = 5;
                 threadCount = 2;
-                SetSearchDepth(2);
+                SetSearchDepth(5);
                 SetMoveTime(20);
                 SetHashSize("64");
                 break;
             case BotDifficulty.Hard:
                 skillLevel = 10;
                 threadCount = 4;
-                SetSearchDepth(3);
+                SetSearchDepth(10);
                 SetMoveTime(30);
                 SetHashSize("128");
                 break;
             case BotDifficulty.Unreal:
                 skillLevel = 20;
                 threadCount = 8;
-                SetSearchDepth(5);
+                SetSearchDepth(20);
                 SetMoveTime(50);
                 SetHashSize("256");
                 break;
@@ -95,6 +95,7 @@ public class StockfishManager : IDisposable
         }
 
         string[] outputParts = output.Split(' ');
+        Console.WriteLine(output);
         return outputParts[1]; // Возвращает лучший ход
     }
 
@@ -105,9 +106,13 @@ public class StockfishManager : IDisposable
         _stockfishProcess.Close();
     }
     
-    public (Move?, PieceType?) GetMoveByStockFish(string stateString, GameState gameState)
+    public (Move?, PieceType?, IEnumerable<Move>?) GetMoveByStockFish(string stateString, Func<Position, IEnumerable<Move>> func)
     {
         var str = GetBestMove(stateString);
+        if (str is "(none)")
+        {
+            return (null, null, null);
+        }
         var startFile = str[0] - 'a';
         var startRank = 8 - int.Parse(str[1].ToString());
         var endFile = str[2] - 'a';
@@ -117,19 +122,19 @@ public class StockfishManager : IDisposable
         
         if (str.Length is 5)
         {
-            if (char.ToLower(str[4]) == 'q')
-                pieceType = PieceType.Queen;
-            if (char.ToLower(str[4]) == 'r')
-                pieceType = PieceType.Rook;
-            if (char.ToLower(str[4]) == 'b')
-                pieceType = PieceType.Bishop;
-            if (char.ToLower(str[4]) == 'n')
-                pieceType = PieceType.Knight;
+            pieceType = char.ToLower(str[4]) switch
+            {
+                'q' => PieceType.Queen,
+                'b' => PieceType.Bishop,
+                'r' => PieceType.Rook,
+                'n' => PieceType.Knight,
+                _ => pieceType
+            };
         }
 
         var startPos = new Position(startRank, startFile);
             
-        IEnumerable<Move> moves = gameState.LegalMovesForPieces(startPos);
+        IEnumerable<Move> moves = func(startPos);
         
         Dictionary<Position, Move> movesCache = new();
 
@@ -143,10 +148,10 @@ public class StockfishManager : IDisposable
 
             if (movesCache.TryGetValue(endPos, out var moveFinal))
             {
-                return (moveFinal, pieceType);
+                return (moveFinal, pieceType, moves);
             }
         }
 
-        return (null, null);
+        return (null, null, null);
     }
 }

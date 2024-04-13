@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ChessUI;
+namespace ChessUI.ContentControls;
 
-public partial class PauseMenu : UserControl
+public partial class PauseMenu
 {
     public event Action<Option>? OptionSelected;
     

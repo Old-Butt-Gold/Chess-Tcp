@@ -1,43 +1,30 @@
-﻿using System.IO;
-using ChessLogic.Bot;
-using ChessLogic.CoordinateClasses;
+﻿using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
 using ChessLogic.ResultReasons;
 
 namespace ChessLogic;
 
-public class GameState
+public class GameManager
 {
-    static readonly string PathToBot = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "stockfish.exe";
-    
-    StockfishManager? _stockfishManager;
-
-    public async Task<(Move? move, PieceType? pieceType)> GetBestMoveAsync() => await Task.Run(() => _stockfishManager!.GetMoveByStockFish(_stateString, this));
-
     public Board Board { get; }
     public Player CurrentPlayer { get; private set; }
     public Result? Result { get; private set; }
 
     int _noCaptureOrPawnMoves;
-    string _stateString;
+    public string StateString { get; private set; }
 
     readonly Dictionary<string, int> _stateHistory = new();
 
-    public GameState(Player player, Board board)
+    public GameManager(Player player, Board board)
     {
         CurrentPlayer = player;
         Board = board;
 
-        _stateString = new StateString(CurrentPlayer, board).ToString();
-        _stateHistory[_stateString] = 1;
+        StateString = new StateString(CurrentPlayer, board).ToString();
+        _stateHistory[StateString] = 1;
     }
 
-    public GameState(Player player, Board board, BotDifficulty botDifficulty) : this(player, board)
-    {
-        _stockfishManager = new StockfishManager(PathToBot, botDifficulty);
-    }
-    
     public void MakeMove(Move move)
     {
         Board.SetPawnSkipPosition(CurrentPlayer, null);
@@ -108,13 +95,15 @@ public class GameState
 
     void UpdateStateString()
     {
-        _stateString = new StateString(CurrentPlayer, Board).ToString();
+        StateString = new StateString(CurrentPlayer, Board).ToString();
         
-        if (!_stateHistory.TryAdd(_stateString, 1))
+        if (!_stateHistory.TryAdd(StateString, 1))
         {
-            _stateHistory[_stateString]++;
+            _stateHistory[StateString]++;
         }
     }
 
-    bool ThreefoldRepetition() => _stateHistory[_stateString] is 3;
+    bool ThreefoldRepetition() => _stateHistory[StateString] is 3;
+    
+    
 }

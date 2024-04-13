@@ -7,9 +7,9 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Chess" SizeToContent="Height" Width="600" Icon="../Assets/icon.ico" 
-        Background="#101010" WindowStartupLocation="CenterScreen">
+        Background="#101010" WindowStartupLocation="CenterScreen" Closed="MainWindow_OnClosed">
     <Window.InputBindings>
-        <KeyBinding Command="{Binding EscapeMenuCommand}" Key="Escape" />
+        <KeyBinding Command="{Binding EscapeMenuCommand}" Key="Escape"/>
     </Window.InputBindings>
     
     <Window.Resources>

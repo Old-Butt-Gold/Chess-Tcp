@@ -1,23 +1,22 @@
 using System.Windows;
-using System.Windows.Controls;
 using ChessLogic;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.ResultReasons;
 
-namespace ChessUI;
+namespace ChessUI.ContentControls;
 
 public partial class GameOverMenu
 {
     public event Action<Option>? OptionSelected;
     
-    public GameOverMenu(GameState gameState)
+    public GameOverMenu(GameManager gameManager)
     {
         InitializeComponent();
 
-        var result = gameState.Result;
+        var result = gameManager.Result;
 
         WinnerText.Text = GetWinnerText(result!.Winner);
-        ReasonText.Text = GetReasonText(result.Reason, gameState.CurrentPlayer);
+        ReasonText.Text = GetReasonText(result.Reason, gameManager.CurrentPlayer);
     }
     
     static string GetWinnerText(Player winner) =>

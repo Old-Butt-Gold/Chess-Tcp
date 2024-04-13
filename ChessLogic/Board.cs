@@ -6,12 +6,14 @@ namespace ChessLogic;
 
 public class Board
 {
+    public static bool IsBoardReversed = false; //По дефолту false
+    
     readonly Piece[,] _pieces = new Piece[8, 8];
 
     readonly Dictionary<Player, Position> _pawnSkipPositions = new()
     {
-        { Player.White , null},
-        { Player.Black , null},
+        { Player.White, null},
+        { Player.Black, null},
     };
     
     public Position GetPawnSkipPosition(Player player) => _pawnSkipPositions[player];
@@ -31,8 +33,7 @@ public class Board
     }
     
     public bool IsEmpty(Position position) => this[position] is null;
-
-    //TODO для сетей
+    
     public static Board Initial()
     {
         Board board = new();
@@ -42,28 +43,30 @@ public class Board
 
     void AddStartPieces()
     {
-        this[0, 0] = new Rook(Player.Black);
-        this[0, 1] = new Knight(Player.Black);
-        this[0, 2] = new Bishop(Player.Black);
-        this[0, 3] = new Queen(Player.Black);
-        this[0, 4] = new King(Player.Black);
-        this[0, 5] = new Bishop(Player.Black);
-        this[0, 6] = new Knight(Player.Black);
-        this[0, 7] = new Rook(Player.Black);
-        
-        this[7, 0] = new Rook(Player.White);
-        this[7, 1] = new Knight(Player.White);
-        this[7, 2] = new Bishop(Player.White);
-        this[7, 3] = new Queen(Player.White);
-        this[7, 4] = new King(Player.White);
-        this[7, 5] = new Bishop(Player.White);
-        this[7, 6] = new Knight(Player.White);
-        this[7, 7] = new Rook(Player.White);
+        Player playerStart = !IsBoardReversed ? Player.Black : Player.White;
+
+        this[0, 0] = new Rook(playerStart);
+        this[0, 1] = new Knight(playerStart);
+        this[0, 2] = new Bishop(playerStart);
+        this[0, 3] = new Queen(playerStart);
+        this[0, 4] = new King(playerStart);
+        this[0, 5] = new Bishop(playerStart);
+        this[0, 6] = new Knight(playerStart);
+        this[0, 7] = new Rook(playerStart);
+
+        this[7, 0] = new Rook(playerStart.Opponent());
+        this[7, 1] = new Knight(playerStart.Opponent());
+        this[7, 2] = new Bishop(playerStart.Opponent());
+        this[7, 3] = new Queen(playerStart.Opponent());
+        this[7, 4] = new King(playerStart.Opponent());
+        this[7, 5] = new Bishop(playerStart.Opponent());
+        this[7, 6] = new Knight(playerStart.Opponent());
+        this[7, 7] = new Rook(playerStart.Opponent());
 
         for (int i = 0; i < 8; i++)
         {
-            this[1, i] = new Pawn(Player.Black);
-            this[6, i] = new Pawn(Player.White);
+            this[1, i] = new Pawn(playerStart);
+            this[6, i] = new Pawn(playerStart.Opponent());
         }
     }
 
@@ -182,21 +185,23 @@ public class Board
                                            && !king.HasMoved && !rook.HasMoved;
     }
 
-    //TODO для сетей
     public bool CastleRightKs(Player player) =>
         player switch
         {
-            Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
-            Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
+            Player.White when !IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
+            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
+            Player.Black when !IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
+            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
             _ => false,
         };
 
-    //TODO для сетей
     public bool CastleRightQs(Player player) =>
         player switch
         {
-            Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
-            Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
+            Player.White when !IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
+            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
+            Player.Black when !IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
+            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
             _ => false,
         };
 
@@ -220,7 +225,6 @@ public class Board
         return false;
     }
     
-    //TODO для сетей
     public bool CanCaptureEnPassant(Player player)
     {
         Position skipPos = GetPawnSkipPosition(player.Opponent());
@@ -232,8 +236,10 @@ public class Board
 
         Position[] pawnPositions = player switch
         {
-            Player.White => new[] { skipPos + Direction.SouthWest, skipPos + Direction.SouthEast },
-            Player.Black => new[] { skipPos + Direction.NorthWest, skipPos + Direction.NorthEast },
+            Player.White when !IsBoardReversed => new[] { skipPos + Direction.SouthWest, skipPos + Direction.SouthEast },
+            Player.White when IsBoardReversed => new[] { skipPos + Direction.NorthWest, skipPos + Direction.NorthEast },
+            Player.Black when !IsBoardReversed => new[] { skipPos + Direction.NorthWest, skipPos + Direction.NorthEast },
+            Player.Black when IsBoardReversed => new[] { skipPos + Direction.SouthWest, skipPos + Direction.SouthEast },
             _ => Array.Empty<Position>(),
         };
 

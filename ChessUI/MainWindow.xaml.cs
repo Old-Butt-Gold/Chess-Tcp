@@ -6,28 +6,30 @@ namespace ChessUI;
 
 public partial class MainWindow
 {
-    private GameType _gameType;
-    private BotDifficulty _botDifficulty;
-    private Player _startPlayer;
+    ChessViewModel ViewModel { get; }
     
     //TODO боты ломаются при перевороте поля
     public MainWindow()
     {
         InitializeComponent();
-        _gameType = GameType.BotVersusBot;
-        _botDifficulty = BotDifficulty.Easy;
-        _startPlayer = Player.White;
         
-        InitializeComponent();
-        var viewModel = new MainWindowViewModel(_startPlayer, _gameType, _botDifficulty)
+        ViewModel = new ChessViewModel(Player.White, GameType.PlayerVersusBot, BotDifficulty.Easy)
         {
-            HighLightGrid = this.HighLightGrid,
-            PieceGrid = this.PieceGrid,
-            MenuContainer = this.MenuContainer,
-            BoardGrid = this.BoardGrid,
+            UiChessManager =
+            {
+                HighLightGrid = this.HighLightGrid,
+                PieceGrid = this.PieceGrid,
+                MenuContainer = this.MenuContainer,
+                BoardGrid = this.BoardGrid
+            },
         };
-        viewModel.Start();
-        DataContext = viewModel;
+        ViewModel.Start();
+        DataContext = ViewModel;
+
+    }
+
+    void MainWindow_OnClosed(object? sender, EventArgs e)
+    {
+        ViewModel?.Dispose();
     }
 }
-
