@@ -11,12 +11,13 @@ namespace ChessUI;
 
 public class BoardDrawer
 {
-    public Position? SelectedPosition { get; set; }
+    public Position? SelectedPosition { get; private set; }
     Position? _kingPosition;
     
     readonly Image[,] _pieceImages = new Image[8, 8];
     
     readonly Shape[,] _highLights = new Shape[8, 8];
+
     readonly Dictionary<Position, Move> _movesCache = new();
 
     public Brush DangerBrush { get; set; } = new SolidColorBrush(Color.FromArgb(150, 245, 39, 65));
@@ -33,8 +34,14 @@ public class BoardDrawer
         }
     }
 
-    public void SetPieceImages(UniformGrid pieceGrid)
+    public void ClearPieceImages(UniformGrid pieceGrid)
     {
+        pieceGrid.Children.Clear();
+    }
+
+    public void InitializePieceImages(UniformGrid pieceGrid)
+    {
+        ClearPieceImages(pieceGrid);
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
@@ -53,12 +60,19 @@ public class BoardDrawer
         _pieceImages[from.Row, from.Column].Source = null;
     }
 
-    public void SetHighLights(UniformGrid highLightGrid)
+    public void ClearHighLights(UniformGrid highLightGrid)
     {
+        highLightGrid.Children.Clear();   
+    }
+
+    public void InitializeHighLights(UniformGrid highLightGrid)
+    {
+        ClearHighLights(highLightGrid);
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
+                //TODO сделать размер адаптивным под интерфейс
                 Ellipse ellipse = new Ellipse
                 {
                     Height = 45,

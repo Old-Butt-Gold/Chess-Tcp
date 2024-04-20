@@ -11,7 +11,6 @@ public partial class PromotionMenu
     public PromotionMenu(Player player)
     {
         InitializeComponent();
-
         ImgQueen.Source = Images.GetImage(player, PieceType.Queen);
         ImgBishop.Source = Images.GetImage(player, PieceType.Bishop);
         ImgRook.Source = Images.GetImage(player, PieceType.Rook);

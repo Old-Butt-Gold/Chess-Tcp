@@ -7,12 +7,12 @@ namespace ChessLogic.Bot;
 public class BotManager : IDisposable
 {
     static readonly string PathToBot = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "stockfish.exe";
-    
-    StockfishManager? _stockfishManager;
+
+    readonly StockfishManager? _stockfishManager;
 
     public (Move? move, PieceType? pieceType, IEnumerable<Move>? moves) GetBestMove(GameManager gameManager)
     {
-        return _stockfishManager!.GetMoveByStockFish(gameManager.StateString, gameManager.LegalMovesForPieces);
+        return _stockfishManager!.GetMoveByPosition(gameManager.StateString, gameManager.LegalMovesForPieces);
     }
 
     public BotManager(BotDifficulty botDifficulty)

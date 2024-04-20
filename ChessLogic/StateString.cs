@@ -6,20 +6,20 @@ namespace ChessLogic;
 
 public class StateString
 {
-    readonly StringBuilder sb = new();
+    readonly StringBuilder _sb = new();
 
     public StateString(Player currentPlayer, Board board) //FEN
     {
         AddPiecePlacement(board);
-        sb.Append(' ');
+        _sb.Append(' ');
         AddCurrentPlayer(currentPlayer);
-        sb.Append(' ');
+        _sb.Append(' ');
         AddCastlingRights(board);
-        sb.Append(' ');
+        _sb.Append(' ');
         AddEnPassant(board, currentPlayer);
     }
 
-    public override string ToString() => sb.ToString();
+    public override string ToString() => _sb.ToString();
 
     void AddPiecePlacement(Board board)
     {
@@ -27,7 +27,7 @@ public class StateString
         {
             if (i != 0)
             {
-                sb.Append('/');
+                _sb.Append('/');
             }
             
             AddRowData(board, i);
@@ -48,17 +48,17 @@ public class StateString
 
                     if (empty > 0)
                     {
-                        sb.Append(empty);
+                        _sb.Append(empty);
                         empty = 0;
                     }
 
-                    sb.Append(PieceChar(board[row, i]));
+                    _sb.Append(PieceChar(board[row, i]));
                 }
             }
 
             if (empty > 0)
             {
-                sb.Append(empty);
+                _sb.Append(empty);
             }
         
             char PieceChar(Piece piece)
@@ -79,7 +79,7 @@ public class StateString
         }
     }
 
-    void AddCurrentPlayer(Player currentPlayer) => sb.Append(currentPlayer == Player.White ? 'w' : 'b');
+    void AddCurrentPlayer(Player currentPlayer) => _sb.Append(currentPlayer == Player.White ? 'w' : 'b');
 
     void AddCastlingRights(Board board)
     {
@@ -90,28 +90,28 @@ public class StateString
 
         if (!(castleWqs || castleWks || castleBqs || castleBks))
         {
-            sb.Append('-');
+            _sb.Append('-');
             return;
         }
 
         if (castleWks)
         {
-            sb.Append('K');
+            _sb.Append('K');
         }
 
         if (castleWqs)
         {
-            sb.Append('Q');
+            _sb.Append('Q');
         }
 
         if (castleBks)
         {
-            sb.Append('k');
+            _sb.Append('k');
         }
 
         if (castleBqs)
         {
-            sb.Append('q');
+            _sb.Append('q');
         }
     }
 
@@ -119,7 +119,7 @@ public class StateString
     {
         if (!board.CanCaptureEnPassant(currentPlayer))
         {
-            sb.Append('-');
+            _sb.Append('-');
             return;
         }
 
@@ -127,7 +127,7 @@ public class StateString
         char file = (char)('a' + position.Column);
         int rank = 8 - position.Row;
 
-        sb.Append(file);
-        sb.Append(rank);
+        _sb.Append(file);
+        _sb.Append(rank);
     }
 }

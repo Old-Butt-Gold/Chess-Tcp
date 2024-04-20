@@ -81,7 +81,7 @@ public class StockfishManager : IDisposable
         _stockfishProcess.StandardInput.WriteLine("setoption name Hash value " + hashSize);
     }
     
-    public string GetBestMove(string fenPosition)
+    string GetBestMove(string fenPosition)
     {
         _stockfishProcess.StandardInput.WriteLine("position fen " + fenPosition);
         _stockfishProcess.StandardInput.WriteLine($"go movetime {_moveTime} depth {_searchDepth} ");
@@ -106,7 +106,7 @@ public class StockfishManager : IDisposable
         _stockfishProcess.Close();
     }
     
-    public (Move?, PieceType?, IEnumerable<Move>?) GetMoveByStockFish(string stateString, Func<Position, IEnumerable<Move>> func)
+    public (Move?, PieceType?, IEnumerable<Move>?) GetMoveByPosition(string stateString, Func<Position, IEnumerable<Move>> func)
     {
         var str = GetBestMove(stateString);
         if (str is "(none)")

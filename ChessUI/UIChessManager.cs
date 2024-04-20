@@ -77,9 +77,10 @@ public class UIChessManager : INotifyPropertyChanged
     public Position ToSquarePosition(MouseButtonEventArgs e)
     {
         Point point = e.GetPosition(PieceGrid);
-        double squareSize = PieceGrid.ActualWidth / 8;
-        int row = (int)(point.Y / squareSize);
-        int column = (int)(point.X / squareSize);
+        double rowSize = PieceGrid.ActualWidth / 8;
+        double colSize = PieceGrid.ActualHeight / 8;
+        int row = (int)(point.Y / colSize);
+        int column = (int)(point.X / rowSize);
         return new Position(row, column);
     }
     

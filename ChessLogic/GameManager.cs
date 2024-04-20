@@ -16,12 +16,12 @@ public class GameManager
 
     readonly Dictionary<string, int> _stateHistory = new();
 
-    public GameManager(Player player, Board board)
+    public GameManager(Player player)
     {
         CurrentPlayer = player;
-        Board = board;
+        Board = Board.Initial();
 
-        StateString = new StateString(CurrentPlayer, board).ToString();
+        StateString = new StateString(CurrentPlayer, Board).ToString();
         _stateHistory[StateString] = 1;
     }
 
@@ -75,7 +75,7 @@ public class GameManager
 
         if (Board.InsufficientMaterial())
         {
-            Result = new Result(CurrentPlayer, EndReason.InsufficientMaterial);
+            Result = new Result(Player.None, EndReason.InsufficientMaterial);
         }
 
         if (FiftyMoveRule())
