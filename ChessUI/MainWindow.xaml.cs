@@ -1,6 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using ChessLogic;
 using ChessLogic.Bot;
@@ -10,15 +8,14 @@ namespace ChessUI;
 
 public partial class MainWindow
 {
+    ChessClient ChessClient { get; set; }
     ChessViewModel ViewModel { get; }
-
-    TcpClient TcpClient { get; } = new();
-
-    IPEndPoint ServerIpEndPoint { get; } = IPEndPoint.Parse("127.0.0.1:5555");
     
     public MainWindow()
     {
         InitializeComponent();
+        List<string> meow = ["1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3"];
+        AvailableRoomsListBox.ItemsSource = meow;
         //TcpClient.Connect(ServerIpEndPoint);
 
         ViewModel = new ChessViewModel
@@ -37,7 +34,7 @@ public partial class MainWindow
     void MainWindow_OnClosed(object? sender, EventArgs e)
     {
         ViewModel?.Dispose();
-        TcpClient?.Dispose();
+        ChessClient?.Dispose();
     }
 
     void BotButton_OnClick(object sender, RoutedEventArgs e)

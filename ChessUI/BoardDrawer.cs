@@ -72,7 +72,6 @@ public class BoardDrawer
         {
             for (int j = 0; j < 8; j++)
             {
-                //TODO сделать размер адаптивным под интерфейс
                 Ellipse ellipse = new Ellipse
                 {
                     Height = 45,

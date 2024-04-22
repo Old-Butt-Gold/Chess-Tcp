@@ -13,10 +13,13 @@ namespace ChessUI;
 public class ChessViewModel : IDisposable
 {
     public ICommand? MouseDownCommand { get; private set; }
+
     public UIChessManager UiChessManager { get; private set; } = new();
     public BoardDrawer BoardDrawer { get; private set; } = new();
     public GameManager GameManager { get; private set; }
     public BotManager? BotManager { get; private set; }
+    
+    public ChessClient ChessClient { get; set; }
 
     bool IsBotThinking { get; set; }
     Player StartPlayer { get; set; }
@@ -114,7 +117,30 @@ public class ChessViewModel : IDisposable
         {
             if (StartPlayer == GameManager.CurrentPlayer)
             {
-                HandlePlayerMove(e);
+                var position = UiChessManager.ToSquarePosition(e);
+
+                if (BoardDrawer.SelectedPosition is null)
+                {
+                    IEnumerable<Move> moves = GameManager.LegalMovesForPieces(position);
+                    BoardDrawer.ShowPossibleMoves(position, moves);
+                }
+                else
+                {
+                    var move = BoardDrawer.TryToGetMove(position);
+                    if (move != null)
+                    {
+                        if (move.Type == MoveType.PawnPromotion)
+                        {
+                            HandlePromotionMove(move.FromPos, move.ToPos);
+                        }
+                        else
+                        {
+                            HandleMove(move);
+                        }
+                    }
+                }
+
+                BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
             }
             
             if (GameManager.CurrentPlayer == StartPlayer.Opponent())
@@ -159,38 +185,33 @@ public class ChessViewModel : IDisposable
     {
         if (obj is MouseButtonEventArgs e)
         {
-            HandlePlayerMove(e);
-        }
-    }
+            var position = UiChessManager.ToSquarePosition(e);
 
-    void HandlePlayerMove(MouseButtonEventArgs e)
-    {
-        var position = UiChessManager.ToSquarePosition(e);
-
-        if (BoardDrawer.SelectedPosition is null)
-        {
-            IEnumerable<Move> moves = GameManager.LegalMovesForPieces(position);
-            BoardDrawer.ShowPossibleMoves(position, moves);
-        }
-        else
-        {
-            var move = BoardDrawer.TryToGetMove(position);
-            if (move != null)
+            if (BoardDrawer.SelectedPosition is null)
             {
-                if (move.Type == MoveType.PawnPromotion)
+                IEnumerable<Move> moves = GameManager.LegalMovesForPieces(position);
+                BoardDrawer.ShowPossibleMoves(position, moves);
+            }
+            else
+            {
+                var move = BoardDrawer.TryToGetMove(position);
+                if (move != null)
                 {
-                    HandlePromotionMove(move.FromPos, move.ToPos);
-                }
-                else
-                {
-                    HandleMove(move);
+                    if (move.Type == MoveType.PawnPromotion)
+                    {
+                        HandlePromotionMove(move.FromPos, move.ToPos);
+                    }
+                    else
+                    {
+                        HandleMove(move);
+                    }
                 }
             }
-        }
 
-        BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
+            BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
+        }
     }
-    
+
     public void Dispose()
     {
         CancellationTokenSource?.Dispose();

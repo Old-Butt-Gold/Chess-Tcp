@@ -9,6 +9,8 @@ public class Position : IEquatable<Position>
 
     public Player SquareColor() => Row + Column % 2 is 0 ? Player.White : Player.Black;
 
+    public override string ToString() => $"{Row}{(char) (Column + 'a')}";
+
     public bool Equals(Position? other)
     {
         if (ReferenceEquals(null, other)) return false;

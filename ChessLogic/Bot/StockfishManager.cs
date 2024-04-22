@@ -96,7 +96,7 @@ public class StockfishManager : IDisposable
 
         string[] outputParts = output.Split(' ');
         Console.WriteLine(output);
-        return outputParts[1]; // Возвращает лучший ход
+        return outputParts[1];
     }
 
     public void Dispose()
@@ -113,10 +113,12 @@ public class StockfishManager : IDisposable
         {
             return (null, null, null);
         }
-        var startFile = str[0] - 'a';
-        var startRank = 8 - int.Parse(str[1].ToString());
-        var endFile = str[2] - 'a';
-        var endRank = 8 - int.Parse(str[3].ToString());
+        
+        //Board.IsBoardReverse не работает, поскольку генерируется FEN текущего местоположения фигур
+        var startColumn = str[0] - 'a';
+        var startRow = 8 - int.Parse(str[1].ToString());
+        var endColumn = str[2] - 'a';
+        var endRow = 8 - int.Parse(str[3].ToString());
 
         PieceType? pieceType = null; //при превращении пешки
         
@@ -132,13 +134,13 @@ public class StockfishManager : IDisposable
             };
         }
 
-        var startPos = new Position(startRank, startFile);
+        var startPos = new Position(startRow, startColumn);
             
         IEnumerable<Move> moves = func(startPos);
         
         Dictionary<Position, Move> movesCache = new();
 
-        Position endPos = new Position(endRank, endFile);
+        Position endPos = new Position(endRow, endColumn);
         if (moves.Any())
         {
             foreach (var move in moves)
