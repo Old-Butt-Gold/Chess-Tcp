@@ -51,7 +51,11 @@ class Server
                 
                 if (message.StartsWith("show_rooms"))
                 {
-                    string roomNames = string.Join(MessageRegex, _gameRooms.Keys);
+                    StringBuilder roomNames = new();
+                    foreach (var item in _gameRooms.Values)
+                    {
+                        roomNames.Append(item.Name + ":" + item.Count + MessageRegex);
+                    }
                     await chessPlayer.StreamWriter.WriteLineAsync(roomNames);
                 }
 

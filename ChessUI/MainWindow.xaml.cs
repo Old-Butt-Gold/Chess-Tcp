@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Net;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using ChessLogic;
 using ChessLogic.Bot;
@@ -8,14 +10,12 @@ namespace ChessUI;
 
 public partial class MainWindow
 {
-    ChessClient ChessClient { get; set; }
+    ChessClient ChessClient { get; set; } = new();
     ChessViewModel ViewModel { get; }
     
     public MainWindow()
     {
         InitializeComponent();
-        List<string> meow = ["1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3"];
-        AvailableRoomsListBox.ItemsSource = meow;
         //TcpClient.Connect(ServerIpEndPoint);
 
         ViewModel = new ChessViewModel
@@ -50,7 +50,77 @@ public partial class MainWindow
         //Из-за того, что Binding присвваивается сразу к null-команде
         if (ViewModel.MouseDownCommand != null && ViewModel.MouseDownCommand.CanExecute(sender))
         {
-            ViewModel.MouseDownCommand.Execute(e);
+            ViewModel.MouseDownCommand?.Execute(e);
         }
+    }
+
+    async void Connect_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (!IPAddress.TryParse(ServerIpTextBox.Text, out var ipAddress))
+        {
+            MessageBox.Show("Invalid IP address.");
+            return;
+        }
+
+        if (!int.TryParse(PortTextBox.Text, out var port))
+        {
+            MessageBox.Show("Invalid port number.");
+            return;
+        }
+
+        var button = e.Source as Button;
+        button.IsEnabled = false;
+        try
+        {
+            await ChessClient.ConnectAsync(ipAddress, port);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Connection failed: {ex.Message}");
+        }
+        finally
+        {
+            button.IsEnabled = true;
+        }
+    }
+
+    async void Disconnect_OnClick(object sender, RoutedEventArgs e)
+    {
+        await ChessClient.DisconnectAsync();
+    }
+
+    async void Refresh_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (!ChessClient.IsConnected)
+        {
+            MessageBox.Show("You are not connected to the server.");
+            return;
+        }
+        
+        var button = e.Source as Button;
+        button!.IsEnabled = false;
+        await ChessClient.SendMessageAsync("show_rooms");
+        var message = await ChessClient.ReceiveMessageAsync();
+
+        var rooms = message?.Split(ChessClient.MessageRegex, StringSplitOptions.RemoveEmptyEntries);
+
+        List<RoomInfo> roomInfos = [];
+
+        foreach (var room in rooms)
+        {
+            var components = room.Split(":", StringSplitOptions.RemoveEmptyEntries);
+            roomInfos.Add(new RoomInfo(components[0], int.Parse(components[1])));
+        }
+
+        AvailableRoomsListBox.ItemsSource = roomInfos;
+        button.IsEnabled = true;
+    }
+    
+    class RoomInfo
+    {
+        public string Name { get; set; }
+        public int Count { get; set; }
+
+        public RoomInfo(string name, int count) => (Name, Count) = (name, count);
     }
 }

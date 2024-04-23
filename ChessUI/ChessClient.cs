@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Windows;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 
@@ -9,18 +10,41 @@ namespace ChessUI;
 
 public class ChessClient : IDisposable
 {
-    readonly TcpClient _tcpClient = new();
+    TcpClient _tcpClient = new(AddressFamily.InterNetwork);
     StreamReader _reader;
     StreamWriter _writer;
     
-    const string MessageRegex = "#&#";
+    public const string MessageRegex = "#&#";
     
-    public async Task ConnectAsync(IPEndPoint ipEndPoint)
+    public async Task ConnectAsync(IPAddress ipAddress, int port)
     {
-        await _tcpClient.ConnectAsync(ipEndPoint);
-        var stream = _tcpClient.GetStream();
-        _reader = new StreamReader(stream, Encoding.UTF8);
-        _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+        if (!IsConnected)
+        {
+            await _tcpClient.ConnectAsync(ipAddress, port);
+            var stream = _tcpClient.GetStream();
+            _reader = new StreamReader(stream, Encoding.UTF8);
+            _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+        }
+        else
+        {
+            MessageBox.Show($"You are already connected to the server: {_tcpClient.Client.RemoteEndPoint}");
+        }
+    }
+
+    public async Task DisconnectAsync()
+    {
+        if (IsConnected)
+        {
+            _reader?.Dispose();
+            _writer?.Dispose();
+            _tcpClient.Close();
+            _tcpClient?.Dispose();
+            _tcpClient = new(AddressFamily.InterNetwork);
+        }
+        else
+        {
+            MessageBox.Show("You are not connected to the server.");
+        }
     }
 
     public bool IsConnected => _tcpClient.Connected;
@@ -50,6 +74,8 @@ public class ChessClient : IDisposable
 
         return new NormalMove(startPosition, endPosition);
     }
+    
+    
 
     public void Dispose()
     {
