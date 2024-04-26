@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using ChessClient;
 using ChessLogic;
 using ChessLogic.Bot;
 using ChessLogic.CoordinateClasses;
@@ -19,31 +20,44 @@ public class ChessViewModel : IDisposable
     public GameManager GameManager { get; private set; }
     public BotManager? BotManager { get; private set; }
     
-    public ChessClient ChessClient { get; set; }
+    public Client ChessClient { get; set; }
 
     bool IsBotThinking { get; set; }
+    bool IsEnemyThinking { get; set; }
     Player StartPlayer { get; set; }
-    
-    public void Start(Player startPlayer, GameType gameType, BotDifficulty botDifficulty)
+
+    public async void StartPvp(Player startPlayer)
     {
-        StopBot();
+        Stop();
+        
+        IsEnemyThinking = false;
+        IsPromotion = false;
+        
+        StartPlayer = startPlayer;
+
+        Board.IsBoardReversed = StartPlayer == Player.Black;
+
+        MouseDownCommand = new RelayCommand(MouseDownPvp, _ => !UiChessManager.IsMenuOnScreen() && !IsEnemyThinking);
+
+        Reload();
+        
+        if (startPlayer == Player.Black)
+        {
+            await GetMoveFromOpponent();
+        }
+    }
+    
+    public void StartBot(Player startPlayer, BotDifficulty botDifficulty)
+    {
+        Stop();
         
         StartPlayer = startPlayer;
         
-        if (gameType == GameType.PlayerVersusPlayer)
-        {
-            Board.IsBoardReversed = StartPlayer == Player.Black;
-        }
-        else
-        {
-            CancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = CancellationTokenSource.Token;
-            BotManager = new(botDifficulty);
-        }
+        CancellationTokenSource = new CancellationTokenSource();
+        CancellationToken = CancellationTokenSource.Token;
+        BotManager = new(botDifficulty);
 
-        MouseDownCommand = gameType == GameType.PlayerVersusBot
-            ? new RelayCommand(MouseDownPlayerVBot, _ => !UiChessManager.IsMenuOnScreen() && !IsBotThinking) 
-            : new RelayCommand(MouseDownPvp, _ => !UiChessManager.IsMenuOnScreen());
+        MouseDownCommand = new RelayCommand(MouseDownPlayerVBot, _ => !UiChessManager.IsMenuOnScreen() && !IsBotThinking);
         
         Reload();
     }
@@ -57,12 +71,12 @@ public class ChessViewModel : IDisposable
         UiChessManager.SetCursor(GameManager.CurrentPlayer);
     }
 
-    public void StopBot() //Для остановки и смены режима игры
+    public void Stop() //Для остановки и смены режима игры
     {
         CancellationTokenSource?.Cancel();
         CancellationTokenSource?.Dispose();
-        //BoardDrawer.ClearHighLights(UiChessManager.HighLightGrid);
-        //BoardDrawer.ClearPieceImages(UiChessManager.PieceGrid);
+        BoardDrawer.ClearHighLights(UiChessManager.HighLightGrid);
+        BoardDrawer.ClearPieceImages(UiChessManager.PieceGrid);
     }
     
     void HandlePromotionMove(Position from, Position to)
@@ -72,11 +86,16 @@ public class ChessViewModel : IDisposable
         PromotionMenu promotionMenu = new PromotionMenu(GameManager.CurrentPlayer);
         UiChessManager.MenuContainer.Content = promotionMenu;
 
-        promotionMenu.PieceSelected += type =>
+        promotionMenu.PieceSelected += async type =>
         {
             UiChessManager.MenuContainer.Content = null;
-            Move promMove = new PawnPromotion(from, to, type);
-            HandleMove(promMove);
+            Move move = new PawnPromotion(from, to, type);
+            HandleMove(move);
+            
+            if (IsPromotion)
+            {
+                await ChessClient.SendMessageAsync($"{ClientAction.MakeMove}{Client.MessageRegex}{move.FromPos}:{move.ToPos}:{StartPlayer}:{type}");
+            }
         };
     }
 
@@ -178,14 +197,18 @@ public class ChessViewModel : IDisposable
         } catch { }
     }
 
-    #endregion 
+    #endregion
+
+    #region PVP
+
+    bool IsPromotion { get; set; } = false;
     
-    //TODO сети
-    void MouseDownPvp(object obj)
+    async void MouseDownPvp(object obj)
     {
         if (obj is MouseButtonEventArgs e)
         {
             var position = UiChessManager.ToSquarePosition(e);
+            Move? move = null;
 
             if (BoardDrawer.SelectedPosition is null)
             {
@@ -194,11 +217,12 @@ public class ChessViewModel : IDisposable
             }
             else
             {
-                var move = BoardDrawer.TryToGetMove(position);
+                move = BoardDrawer.TryToGetMove(position);
                 if (move != null)
                 {
                     if (move.Type == MoveType.PawnPromotion)
                     {
+                        IsPromotion = true;
                         HandlePromotionMove(move.FromPos, move.ToPos);
                     }
                     else
@@ -209,8 +233,84 @@ public class ChessViewModel : IDisposable
             }
 
             BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
+            
+            if (move != null)
+            {
+                
+                if (move.Type != MoveType.PawnPromotion)
+                {
+                    await ChessClient.SendMessageAsync($"{ClientAction.MakeMove}{Client.MessageRegex}{move.FromPos}:{move.ToPos}:{StartPlayer}");
+                }
+                
+                await GetMoveFromOpponent();
+            }
+            
+            BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
+
+            IsPromotion = false;
         }
     }
+
+    async Task GetMoveFromOpponent()
+    {
+        IsEnemyThinking = true;
+
+        while (true)
+        {
+            var msg = await ChessClient.ReceiveMessageAsync();
+
+            if (string.IsNullOrEmpty(msg))
+            {
+                continue;
+            }
+
+            if (msg.StartsWith(ClientAction.ExitRoom.ToString()))
+            {
+                MessageBox.Show(msg.Split(":", StringSplitOptions.RemoveEmptyEntries)[1]);
+                Stop();
+                MouseDownCommand = null;
+                return;
+            }
+
+            if (msg.StartsWith(ClientAction.ShowRooms.ToString()))
+            {
+                //TODO await GetFreeRooms(); из Main
+            }
+
+            if (msg.StartsWith(ClientAction.MakeMove.ToString()))
+            {
+                var enemyMove = msg!.Split(":", StringSplitOptions.RemoveEmptyEntries);
+
+                var startRow = 7 - int.Parse(enemyMove[1][0].ToString());
+                //var startColumn = 7 - (enemyMove[1][1] - 'a');
+                var startColumn = enemyMove[1][1] - 'a';
+                var endRow = 7 - int.Parse(enemyMove[2][0].ToString());
+                //var endColumn = 7 - (enemyMove[2][1] - 'a');
+                var endColumn = enemyMove[2][1] - 'a';
+
+                var startPosition = new Position(startRow, startColumn);
+                var endPosition = new Position(endRow, endColumn);
+
+                IEnumerable<Move> moves = GameManager.LegalMovesForPieces(startPosition);
+
+                var newMove = moves.First(m => m.ToPos == endPosition);
+
+                if (newMove.Type == MoveType.PawnPromotion)
+                {
+                    newMove = new PawnPromotion(newMove.FromPos, newMove.ToPos,
+                        Enum.Parse<PieceType>(enemyMove[3]));
+                }
+
+                HandleMove(newMove);
+
+                break;
+            }
+        }
+
+        IsEnemyThinking = false;
+    }
+
+    #endregion
 
     public void Dispose()
     {

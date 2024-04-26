@@ -2,7 +2,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using ChessClient;
 using ChessLogic.CoordinateClasses;
+using ChessLogic.Pieces;
 
 namespace ChessServer;
 
@@ -31,13 +33,13 @@ class Server
         {
             var tcpClient = await tcpListener.AcceptTcpClientAsync();
             Console.WriteLine($"Connected User: {tcpClient.Client.RemoteEndPoint}");
-            Task.Run(() => ProcessPlayer(new ChessPlayer(tcpClient)));
+            ProcessPlayer(new ChessPlayer(tcpClient));
         }
     }
 
     async void ProcessPlayer(ChessPlayer chessPlayer)
     {
-        string? roomName = null;
+        chessPlayer.RoomNameString = new RoomNameString(null);
         try
         {
             while (chessPlayer.TcpClient.Connected)
@@ -46,12 +48,13 @@ class Server
                 
                 if (string.IsNullOrEmpty(message))
                 {
+                    await chessPlayer.StreamWriter.WriteLineAsync(string.Empty); //перестало нормально отсоединяться, теперь работает
                     continue;
                 }
-                
-                if (message.StartsWith("show_rooms"))
+
+                if (message.StartsWith(ClientAction.ShowRooms.ToString()))
                 {
-                    StringBuilder roomNames = new();
+                    StringBuilder roomNames = new(ClientAction.ShowRooms + MessageRegex);
                     foreach (var item in _gameRooms.Values)
                     {
                         roomNames.Append(item.Name + ":" + item.Count + MessageRegex);
@@ -59,56 +62,91 @@ class Server
                     await chessPlayer.StreamWriter.WriteLineAsync(roomNames);
                 }
 
-                if (message.StartsWith("create_room"))
+                if (message.StartsWith(ClientAction.ExitRoom.ToString()))
+                {
+                    if (chessPlayer.RoomNameString.Name != null)
+                    {
+                        if (_gameRooms.TryRemove(chessPlayer.RoomNameString.Name, out var room))
+                        {
+                            if (room.WhitePlayer != null && room.WhitePlayer.Equals(chessPlayer))
+                            {
+                                await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
+
+                                if (room.BlackPlayer != null)
+                                {
+                                    await room.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:Your enemy has exit the game");
+                                    room.BlackPlayer.RoomNameString.Name = null;
+                                }
+            
+                                room.WhitePlayer.RoomNameString.Name = null;
+                            }
+
+                            if (room.BlackPlayer != null && room.BlackPlayer.Equals(chessPlayer))
+                            {
+                                await room.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
+                                
+                                if (room.WhitePlayer != null)
+                                {
+                                    await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:Your enemy has exit the game");
+                                    room.WhitePlayer.RoomNameString.Name = null;
+                                }
+
+                                room.BlackPlayer.RoomNameString.Name = null;
+                            }
+
+                        }
+                    }
+                }
+                
+                if (message.StartsWith(ClientAction.CreateRoom.ToString()))
                 {
                     var command = message.Split(MessageRegex, StringSplitOptions.RemoveEmptyEntries);
                     // Format: create_room#&#room_name
-                    roomName = command[1];
-                    if (_gameRooms.TryAdd(roomName, new ChessRoom(roomName)))
+                    var room = new ChessRoom(command[1]);
+                    if (_gameRooms.TryAdd(command[1], room))
                     {
-                        var room = _gameRooms[roomName];
                         room.WhitePlayer = chessPlayer;
                         room.AddPlayer(chessPlayer);
+                        room.WhitePlayer.RoomNameString.Name = command[1];
+                        await chessPlayer.StreamWriter.WriteLineAsync($"{ClientAction.CreateRoom}:Room was created. Waiting for Players...:true");
                     }
                     else
                     {
-                        roomName = null;
-                        await chessPlayer.StreamWriter.WriteLineAsync("Room with this name already exists.");
+                        await chessPlayer.StreamWriter.WriteLineAsync($"{ClientAction.CreateRoom}:Room with this name already exists.:false");
                     }
                 }
 
-                if (message.StartsWith("connect_room"))
+                if (message.StartsWith(ClientAction.ConnectRoom.ToString()))
                 {
-                    var command = message.Split(MessageRegex, StringSplitOptions.RemoveEmptyEntries); 
+                    var command = message.Split(MessageRegex, StringSplitOptions.RemoveEmptyEntries);
                     //connect_room#&#room_name
-                    roomName = command[1];
-                    if (_gameRooms.TryGetValue(roomName, out var gameRoom))
+                    if (_gameRooms.TryGetValue(command[1], out var gameRoom))
                     {
                         if (gameRoom.Count < 2)
                         {
                             gameRoom.BlackPlayer = chessPlayer;
                             gameRoom.AddPlayer(chessPlayer);
-                            gameRoom.Start();
+                            gameRoom.BlackPlayer.RoomNameString.Name = gameRoom.Name;
+                            await gameRoom.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ConnectRoom}:Game has started.:true");
+                            await gameRoom.WhitePlayer!.StreamWriter.WriteLineAsync($"{ClientAction.ConnectRoom}:Game has started.:true");
                         }
                         else
                         {
-                            roomName = null;
-                            await chessPlayer.StreamWriter.WriteLineAsync("Room with this name is full.");    
+                            await chessPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ConnectRoom}:Room with this name is full.:false");
                         }
                     }
                     else
                     {
-                        roomName = null;
-                        await chessPlayer.StreamWriter.WriteLineAsync("Room with this name does not exist.");
+                        await chessPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ConnectRoom}:Room with this name does not exist.:false");
                     }
                 }
 
                 //make_move#&#1a:2b:White
-                if (message.StartsWith("make_move"))
+                if (message.StartsWith(ClientAction.MakeMove.ToString()))
                 {
-                    if (roomName != null)
+                    if (chessPlayer.RoomNameString.Name != null)
                     {
-                        _gameRooms.TryGetValue(roomName, out var room);
+                        _gameRooms.TryGetValue(chessPlayer.RoomNameString.Name, out var room);
                         
                         var str = message.Split(MessageRegex, StringSplitOptions.RemoveEmptyEntries);
                         var move = str[1];
@@ -118,13 +156,19 @@ class Server
                         var startPosition = moveComponents[0];
                         var endPosition = moveComponents[1];
 
+                        var promotionType = string.Empty;
+                        if (moveComponents.Length == 4)
+                        {
+                            promotionType += ":" + Enum.Parse<PieceType>(moveComponents[3]);
+                        }
+
                         if (currentPlayer == Player.White)
                         {
-                            await room!.BlackPlayer!.StreamWriter.WriteLineAsync($"{startPosition}:{endPosition}");
+                            await room!.BlackPlayer!.StreamWriter.WriteLineAsync($"{ClientAction.MakeMove}:{startPosition}:{endPosition}{promotionType}");
                         }
                         else
                         {
-                            await room!.WhitePlayer!.StreamWriter.WriteLineAsync($"{startPosition}:{endPosition}");
+                            await room!.WhitePlayer!.StreamWriter.WriteLineAsync($"{ClientAction.MakeMove}:{startPosition}:{endPosition}{promotionType}");
                         }
                     } 
                 }
@@ -136,11 +180,36 @@ class Server
         }
         finally
         {
-            if (roomName != null)
+            if (chessPlayer.RoomNameString.Name != null)
             {
-                if (_gameRooms.TryGetValue(roomName, out var gameRoom))
+                if (_gameRooms.TryRemove(chessPlayer.RoomNameString.Name, out var room))
                 {
-                    gameRoom.RemovePlayer(chessPlayer);
+                    if (room.WhitePlayer != null && room.WhitePlayer.Equals(chessPlayer))
+                    {
+                        await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
+
+                        if (room.BlackPlayer != null)
+                        {
+                            await room.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:Your enemy has exit the game");
+                            room.BlackPlayer.RoomNameString.Name = null;
+                        }
+            
+                        room.WhitePlayer.RoomNameString.Name = null;
+                    }
+
+                    if (room.BlackPlayer != null && room.BlackPlayer.Equals(chessPlayer))
+                    {
+                        await room.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
+                                
+                        if (room.WhitePlayer != null)
+                        {
+                            await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:Your enemy has exit the game");
+                            room.WhitePlayer.RoomNameString.Name = null;
+                        }
+
+                        room.BlackPlayer.RoomNameString.Name = null;
+                    }
+
                 }
             }
             chessPlayer.Dispose();
@@ -149,8 +218,14 @@ class Server
 
 }
 
+public class RoomNameString(string? name)
+{
+    public string? Name { get; set; } = name;
+}
+
 public class ChessPlayer : IDisposable, IEquatable<ChessPlayer>
 {
+    public RoomNameString RoomNameString { get; set; }
     string Id { get; } = Guid.NewGuid().ToString();
 
     public TcpClient TcpClient { get; set; }
@@ -158,8 +233,6 @@ public class ChessPlayer : IDisposable, IEquatable<ChessPlayer>
     public StreamReader StreamReader { get; set; }
     public StreamWriter StreamWriter { get; set; }
 
-    public string GetPlayerIp() => (TcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address.ToString();
-    
     public ChessPlayer(TcpClient tcpClient)
     {
         TcpClient = tcpClient;
@@ -208,11 +281,6 @@ public class ChessRoom {
 
     public ChessPlayer? WhitePlayer { get; set; }
     public ChessPlayer? BlackPlayer { get; set; }
-
-    public void Start()
-    {
-        //TODO выдать обоим сообщение о начале игры
-    }
 
     public void AddPlayer(ChessPlayer chessPlayer) => Players.Add(chessPlayer);
 

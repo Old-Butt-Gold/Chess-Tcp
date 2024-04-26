@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessUI", "ChessUI\ChessUI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessServer", "ChessServer\ChessServer.csproj", "{356EE8AF-DC04-49C5-ABEB-E9C4438C6DFA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessClient", "ChessClient\ChessClient.csproj", "{25696086-5532-4ABB-BADE-5BEB28A323AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{356EE8AF-DC04-49C5-ABEB-E9C4438C6DFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{356EE8AF-DC04-49C5-ABEB-E9C4438C6DFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{356EE8AF-DC04-49C5-ABEB-E9C4438C6DFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25696086-5532-4ABB-BADE-5BEB28A323AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25696086-5532-4ABB-BADE-5BEB28A323AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25696086-5532-4ABB-BADE-5BEB28A323AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25696086-5532-4ABB-BADE-5BEB28A323AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

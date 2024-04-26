@@ -6,13 +6,15 @@ using System.Windows;
 using ChessLogic.CoordinateClasses;
 using ChessLogic.Moves;
 
-namespace ChessUI;
+namespace ChessClient;
 
-public class ChessClient : IDisposable
+public class Client : IDisposable
 {
     TcpClient _tcpClient = new(AddressFamily.InterNetwork);
     StreamReader _reader;
     StreamWriter _writer;
+    bool _isReading = false;
+    bool _isWriting = false;
     
     public const string MessageRegex = "#&#";
     
@@ -49,38 +51,34 @@ public class ChessClient : IDisposable
 
     public bool IsConnected => _tcpClient.Connected;
 
-    public async Task SendMessageAsync(string message) => await _writer.WriteLineAsync(message);
-
-    public async Task<string?> ReceiveMessageAsync() => await _reader.ReadLineAsync();
-    
-    public async Task SendMoveAsync(Move move, Player player) 
-        => await _writer.WriteLineAsync($"make_move{MessageRegex}{move.FromPos}:{move.ToPos}:{player}");
-
-    public async Task<Move> ReceiveMoveAsync()
+    public async Task SendMessageAsync(string message)
     {
-        //Инверсируется ход для врага
-        
-        var stringMove = await _reader.ReadLineAsync();
-
-        var move = stringMove!.Split(":", StringSplitOptions.RemoveEmptyEntries);
-
-        var startRow = 7 - int.Parse(move[0][0].ToString());
-        var startColumn = 7 - (move[0][1] - 'a');
-        var endRow = 7 - int.Parse(move[1][0].ToString());
-        var endColumn = 7 - (move[1][1] - 'a');
-
-        var startPosition = new Position(startRow, startColumn);
-        var endPosition = new Position(endRow, endColumn);
-
-        return new NormalMove(startPosition, endPosition);
+        if (!_isWriting)
+        {
+            _isWriting = true;
+            await _writer.WriteLineAsync(message);
+            _isWriting = false;
+        }
     }
-    
-    
+
+    public async Task<string?> ReceiveMessageAsync()
+    {
+        if (!_isReading)
+        {
+            _isReading = true;
+            var message = await _reader.ReadLineAsync();
+            _isReading = false;
+            return message;
+        }
+
+        return null;
+    }
 
     public void Dispose()
     {
         _reader?.Dispose();
         _writer?.Dispose();
         _tcpClient?.Close();
+        _tcpClient?.Dispose();
     }
 }
