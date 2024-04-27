@@ -40,8 +40,19 @@ public class King : Piece
             return false;
         }
 
-        Position rookPosition = new Position(from.Row, 7);
-        Position[] betweenPositions = { new(from.Row, 5), new(from.Row, 6) };
+        Position rookPosition;
+        Position[] betweenPositions;
+        
+        if (!Board.IsBoardReversed)
+        {
+            rookPosition = new Position(from.Row, 7);
+            betweenPositions = new Position[]{ new(from.Row, 5), new(from.Row, 6) };
+        }
+        else
+        {
+            rookPosition = new Position(from.Row, 0);
+            betweenPositions = new Position[]{ new(from.Row, 1), new(from.Row, 2) };
+        }
 
         return IsUnmovedRook(rookPosition, board) && AllEmpty(betweenPositions, board);
     }
@@ -53,9 +64,20 @@ public class King : Piece
             return false;
         }
         
-        Position rookPosition = new Position(from.Row, 0);
-        Position[] betweenPositions = { new(from.Row, 1), new(from.Row, 2), new(from.Row, 3) };
-
+        Position rookPosition;
+        Position[] betweenPositions;
+        
+        if (!Board.IsBoardReversed)
+        {
+            rookPosition = new Position(from.Row, 0);
+            betweenPositions = new Position[]{ new(from.Row, 1), new(from.Row, 2), new(from.Row, 3) };
+        }
+        else
+        {
+            rookPosition = new Position(from.Row, 7);
+            betweenPositions = new Position[]{ new(from.Row, 4), new(from.Row, 5), new(from.Row, 6) };
+        }
+        
         return IsUnmovedRook(rookPosition, board) && AllEmpty(betweenPositions, board);
     }
     

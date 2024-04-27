@@ -19,17 +19,29 @@ public class CastleMove : Move
 
         switch (type)
         {
-            case MoveType.CastleKS:
+            case MoveType.CastleKS when !Board.IsBoardReversed:
                 KingMoveDirection = Direction.East;
                 ToPos = new Position(kingPos.Row, 6);
                 RookFromPos = new Position(kingPos.Row, 7);
                 RookToPos = new Position(kingPos.Row, 5);
                 break;
-            case MoveType.CastleQS:
+            case MoveType.CastleQS when !Board.IsBoardReversed:
                 KingMoveDirection = Direction.West;
                 ToPos = new Position(kingPos.Row, 2);
                 RookFromPos = new Position(kingPos.Row, 0);
                 RookToPos = new Position(kingPos.Row, 3);
+                break;
+            case MoveType.CastleKS when Board.IsBoardReversed:
+                KingMoveDirection = Direction.West;
+                ToPos = new Position(kingPos.Row, 1);
+                RookFromPos = new Position(kingPos.Row, 0);
+                RookToPos = new Position(kingPos.Row, 2);
+                break;
+            case MoveType.CastleQS when Board.IsBoardReversed:
+                KingMoveDirection = Direction.East;
+                ToPos = new Position(kingPos.Row, 5);
+                RookFromPos = new Position(kingPos.Row, 7);
+                RookToPos = new Position(kingPos.Row, 4);
                 break;
         }
     }

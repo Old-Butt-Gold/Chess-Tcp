@@ -48,8 +48,17 @@ public class Board
         this[0, 0] = new Rook(playerStart);
         this[0, 1] = new Knight(playerStart);
         this[0, 2] = new Bishop(playerStart);
-        this[0, 3] = new Queen(playerStart);
-        this[0, 4] = new King(playerStart);
+        if (!IsBoardReversed)
+        {
+            this[0, 3] = new Queen(playerStart);
+            this[0, 4] = new King(playerStart);
+        }
+        else
+        {
+            this[0, 3] = new King(playerStart);
+            this[0, 4] = new Queen(playerStart);
+        }
+
         this[0, 5] = new Bishop(playerStart);
         this[0, 6] = new Knight(playerStart);
         this[0, 7] = new Rook(playerStart);
@@ -57,8 +66,17 @@ public class Board
         this[7, 0] = new Rook(playerStart.Opponent());
         this[7, 1] = new Knight(playerStart.Opponent());
         this[7, 2] = new Bishop(playerStart.Opponent());
-        this[7, 3] = new Queen(playerStart.Opponent());
-        this[7, 4] = new King(playerStart.Opponent());
+        if (!IsBoardReversed)
+        {
+            this[7, 3] = new Queen(playerStart.Opponent());
+            this[7, 4] = new King(playerStart.Opponent());
+        }
+        else
+        {
+            this[7, 3] = new King(playerStart.Opponent());
+            this[7, 4] = new Queen(playerStart.Opponent());
+        }
+
         this[7, 5] = new Bishop(playerStart.Opponent());
         this[7, 6] = new Knight(playerStart.Opponent());
         this[7, 7] = new Rook(playerStart.Opponent());
@@ -189,9 +207,9 @@ public class Board
         player switch
         {
             Player.White when !IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
-            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
+            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 3), new Position(0, 0)),
             Player.Black when !IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
-            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
+            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 3), new Position(7, 0)),
             _ => false,
         };
 
@@ -199,9 +217,9 @@ public class Board
         player switch
         {
             Player.White when !IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
-            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
+            Player.White when IsBoardReversed => IsUnmovedKingAndRook(new Position(0,  3), new Position(0, 7)),
             Player.Black when !IsBoardReversed => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
-            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
+            Player.Black when IsBoardReversed => IsUnmovedKingAndRook(new Position(7, 3), new Position(7, 7)),
             _ => false,
         };
 

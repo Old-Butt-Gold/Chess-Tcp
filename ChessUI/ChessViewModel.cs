@@ -282,11 +282,9 @@ public class ChessViewModel : IDisposable
                 var enemyMove = msg!.Split(":", StringSplitOptions.RemoveEmptyEntries);
 
                 var startRow = 7 - int.Parse(enemyMove[1][0].ToString());
-                //var startColumn = 7 - (enemyMove[1][1] - 'a');
-                var startColumn = enemyMove[1][1] - 'a';
+                var startColumn = 7 - (enemyMove[1][1] - 'a');
                 var endRow = 7 - int.Parse(enemyMove[2][0].ToString());
-                //var endColumn = 7 - (enemyMove[2][1] - 'a');
-                var endColumn = enemyMove[2][1] - 'a';
+                var endColumn = 7 - (enemyMove[2][1] - 'a');
 
                 var startPosition = new Position(startRow, startColumn);
                 var endPosition = new Position(endRow, endColumn);
