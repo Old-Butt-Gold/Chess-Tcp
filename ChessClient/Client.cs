@@ -3,8 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows;
-using ChessLogic.CoordinateClasses;
-using ChessLogic.Moves;
 
 namespace ChessClient;
 

@@ -50,6 +50,8 @@ public class ChessViewModel : IDisposable
     public void StartBot(Player startPlayer, BotDifficulty botDifficulty)
     {
         Stop();
+
+        Board.IsBoardReversed = false;
         
         StartPlayer = startPlayer;
         
@@ -73,12 +75,17 @@ public class ChessViewModel : IDisposable
 
     public void Stop() //Для остановки и смены режима игры
     {
-        CancellationTokenSource?.Cancel();
-        CancellationTokenSource?.Dispose();
+        try
+        {
+            CancellationTokenSource?.Cancel();
+            CancellationTokenSource?.Dispose();
+        }
+        catch { }
+
         BoardDrawer.ClearHighLights(UiChessManager.HighLightGrid);
         BoardDrawer.ClearPieceImages(UiChessManager.PieceGrid);
     }
-    
+
     void HandlePromotionMove(Position from, Position to)
     {
         BoardDrawer.MoveImagePiece(from, to, GameManager.CurrentPlayer, PieceType.Pawn);
@@ -274,7 +281,7 @@ public class ChessViewModel : IDisposable
 
             if (msg.StartsWith(ClientAction.ShowRooms.ToString()))
             {
-                //TODO await GetFreeRooms(); из Main
+                MessageBox.Show("Wait till the end of game!");
             }
 
             if (msg.StartsWith(ClientAction.MakeMove.ToString()))

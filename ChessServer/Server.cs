@@ -21,18 +21,20 @@ class Server
 {
     ConcurrentDictionary<string, ChessRoom> _gameRooms = new();
 
+    StreamWriter Log { get; } = new(new FileStream("log.txt", FileMode.Append)) { AutoFlush = true};
+
     const string MessageRegex = "#&#";
     
     public async Task Start(int port)
     {
         TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
-        Console.WriteLine("Server was started...");
+        await Log.WriteLineAsync($"{DateTime.UtcNow} – Server is started...");
         tcpListener.Start();
 
         while (true)
         {
             var tcpClient = await tcpListener.AcceptTcpClientAsync();
-            Console.WriteLine($"Connected User: {tcpClient.Client.RemoteEndPoint}");
+            await Log.WriteLineAsync($"{DateTime.UtcNow} – Connected User: {tcpClient.Client.RemoteEndPoint}");
             ProcessPlayer(new ChessPlayer(tcpClient));
         }
     }
@@ -141,7 +143,6 @@ class Server
                     }
                 }
 
-                //make_move#&#1a:2b:White
                 if (message.StartsWith(ClientAction.MakeMove.ToString()))
                 {
                     if (chessPlayer.RoomNameString.Name != null)
@@ -176,7 +177,7 @@ class Server
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred while processing player: {ex.Message}");
+            await Log.WriteLineAsync($"{DateTime.UtcNow} – An error occurred while processing player {chessPlayer.TcpClient.Client.RemoteEndPoint}: {ex.Message}");
         }
         finally
         {
@@ -186,7 +187,11 @@ class Server
                 {
                     if (room.WhitePlayer != null && room.WhitePlayer.Equals(chessPlayer))
                     {
-                        await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
+                        if (room.WhitePlayer.TcpClient.Connected)
+                        {
+                            await room.WhitePlayer.StreamWriter.WriteLineAsync(
+                                $"{ClientAction.ExitRoom}:You exit the game");
+                        }
 
                         if (room.BlackPlayer != null)
                         {
@@ -199,8 +204,12 @@ class Server
 
                     if (room.BlackPlayer != null && room.BlackPlayer.Equals(chessPlayer))
                     {
-                        await room.BlackPlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:You exit the game");
-                                
+                        if (room.BlackPlayer.TcpClient.Connected)
+                        {
+                            await room.BlackPlayer.StreamWriter.WriteLineAsync(
+                                $"{ClientAction.ExitRoom}:You exit the game");
+                        }
+
                         if (room.WhitePlayer != null)
                         {
                             await room.WhitePlayer.StreamWriter.WriteLineAsync($"{ClientAction.ExitRoom}:Your enemy has exit the game");
@@ -216,85 +225,4 @@ class Server
         }
     }
 
-}
-
-public class RoomNameString(string? name)
-{
-    public string? Name { get; set; } = name;
-}
-
-public class ChessPlayer : IDisposable, IEquatable<ChessPlayer>
-{
-    public RoomNameString RoomNameString { get; set; }
-    string Id { get; } = Guid.NewGuid().ToString();
-
-    public TcpClient TcpClient { get; set; }
-
-    public StreamReader StreamReader { get; set; }
-    public StreamWriter StreamWriter { get; set; }
-
-    public ChessPlayer(TcpClient tcpClient)
-    {
-        TcpClient = tcpClient;
-        StreamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8);
-        StreamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8)
-        {
-            AutoFlush = true,
-        };
-    }
-
-    public void Dispose()
-    {
-        TcpClient?.Dispose();
-        StreamReader?.Dispose();
-        StreamWriter?.Dispose();
-    }
-
-    public bool Equals(ChessPlayer? other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return Id == other.Id;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != this.GetType()) return false;
-        return Equals((ChessPlayer)obj);
-    }
-
-    public override int GetHashCode() => Id.GetHashCode();
-}
-
-public class ChessRoom {
-    public string Name { get; }
-    List<ChessPlayer> Players { get; } = [];
-
-    public int Count => Players.Count;
-
-    public ChessRoom(string name) 
-    {
-        Name = name;
-    }
-
-    public ChessPlayer? WhitePlayer { get; set; }
-    public ChessPlayer? BlackPlayer { get; set; }
-
-    public void AddPlayer(ChessPlayer chessPlayer) => Players.Add(chessPlayer);
-
-    public void RemovePlayer(ChessPlayer chessPlayer)
-    {
-        Players.Remove(chessPlayer);
-        if (chessPlayer.Equals(WhitePlayer))
-        {
-            WhitePlayer = null;
-        }
-
-        if (chessPlayer.Equals(BlackPlayer))
-        {
-            BlackPlayer = null;
-        }
-    }
 }

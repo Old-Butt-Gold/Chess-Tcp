@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ChessClient;
-using ChessLogic;
 using ChessLogic.Bot;
 using ChessLogic.CoordinateClasses;
 
@@ -37,12 +36,18 @@ public partial class MainWindow
         {
             await ChessClient.SendMessageAsync(ClientAction.ExitRoom.ToString());
         }
+        
         ViewModel?.Dispose();
         ChessClient?.Dispose();
     }
 
-    void BotButton_OnClick(object sender, RoutedEventArgs e)
+    async void BotButton_OnClick(object sender, RoutedEventArgs e)
     {
+        if (ChessClient.IsConnected)
+        {
+            await ChessClient.SendMessageAsync(ClientAction.ExitRoom.ToString());
+        }
+        
         BotDifficulty botDifficulty = (BotDifficulty)BotDifficultyComboBox.SelectedIndex;
         Player player = (Player)(PlayerComboBox.SelectedIndex + 1);
         
@@ -91,6 +96,11 @@ public partial class MainWindow
 
     async void Disconnect_OnClick(object sender, RoutedEventArgs e)
     {
+        if (ChessClient.IsConnected)
+        {
+            await ChessClient.SendMessageAsync($"{ClientAction.ExitRoom}");
+        }
+        
         await ChessClient.DisconnectAsync();
     }
 
@@ -215,17 +225,12 @@ public partial class MainWindow
         button.IsEnabled = true;
     }
 
-    async Task ExitRoom()
+    async void Exit_Action(object sender, RoutedEventArgs e)
     {
         await ChessClient.SendMessageAsync(ClientAction.ExitRoom.ToString());
         
         ViewModel.Stop();
         ActionButton.Visibility = Visibility.Visible;
         ExitButton.Visibility = Visibility.Collapsed;
-    }
-    
-    async void Exit_Action(object sender, RoutedEventArgs e)
-    {
-        await ExitRoom();
     }
 }
