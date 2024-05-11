@@ -46,21 +46,21 @@ public class ChessViewModel : IDisposable
             await GetMoveFromOpponent();
         }
     }
-    
+
     public void StartBot(Player startPlayer, BotDifficulty botDifficulty)
     {
         Stop();
 
         Board.IsBoardReversed = false;
-        
+
         StartPlayer = startPlayer;
-        
+
         CancellationTokenSource = new CancellationTokenSource();
         CancellationToken = CancellationTokenSource.Token;
         BotManager = new(botDifficulty);
 
-        MouseDownCommand = new RelayCommand(MouseDownPlayerVBot, _ => !UiChessManager.IsMenuOnScreen() && !IsBotThinking);
-        
+        MouseDownCommand = new RelayCommand(MouseDownPlayerVBot,
+            _ => !UiChessManager.IsMenuOnScreen() && !IsBotThinking);
         Reload();
     }
 
@@ -141,7 +141,7 @@ public class ChessViewModel : IDisposable
     {
         if (obj is MouseButtonEventArgs e)
         {
-            if (StartPlayer == GameManager.CurrentPlayer)
+            if (StartPlayer == GameManager.CurrentPlayer || !BotManager!.IsCreatedBot)
             {
                 var position = UiChessManager.ToSquarePosition(e);
 
@@ -169,7 +169,7 @@ public class ChessViewModel : IDisposable
                 BoardDrawer.DrawKingCheck(GameManager.Board, GameManager.CurrentPlayer);
             }
             
-            if (GameManager.CurrentPlayer == StartPlayer.Opponent())
+            if (GameManager.CurrentPlayer == StartPlayer.Opponent() && BotManager!.IsCreatedBot)
             {
                 IsBotThinking = true;
                 await HandleBotMoveAsync(CancellationToken);

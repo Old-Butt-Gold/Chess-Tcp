@@ -1,4 +1,5 @@
 using System.IO;
+using System.Windows;
 using ChessLogic.Moves;
 using ChessLogic.Pieces;
 
@@ -10,6 +11,8 @@ public class BotManager : IDisposable
 
     readonly StockfishManager? _stockfishManager;
 
+    public bool IsCreatedBot { get; set; }
+
     public (Move? move, PieceType? pieceType, IEnumerable<Move>? moves) GetBestMove(GameManager gameManager)
     {
         return _stockfishManager!.GetMoveByPosition(gameManager.StateString, gameManager.LegalMovesForPieces);
@@ -17,7 +20,16 @@ public class BotManager : IDisposable
 
     public BotManager(BotDifficulty botDifficulty)
     {
-        _stockfishManager = new StockfishManager(PathToBot, botDifficulty);
+        if (File.Exists(PathToBot))
+        {
+            IsCreatedBot = true;
+            _stockfishManager = new StockfishManager(PathToBot, botDifficulty);
+        }
+        else
+        {
+            IsCreatedBot = false;
+            MessageBox.Show("stockfish.exe wasn't found in ChessUI bin/");
+        }
     }
 
     public void Dispose()
