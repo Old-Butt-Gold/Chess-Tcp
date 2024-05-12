@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using ChessClient;
@@ -8,12 +9,24 @@ using ChessLogic.Moves;
 using ChessLogic.Pieces;
 using ChessUI.Commands;
 using ChessUI.ContentControls;
+using ProcessStartInfo = System.Diagnostics.ProcessStartInfo;
 
 namespace ChessUI;
 
 public class ChessViewModel : IDisposable
 {
     public ICommand? MouseDownCommand { get; private set; }
+    public ICommand ShowHelpCommand { get; private set; } = new RelayCommand(ShowHelp);
+
+    static void ShowHelp(object obj)
+    {
+        string url = "https://www.chess.com/ru/kak-igrat-v-shakhmaty";
+        var info = new ProcessStartInfo(url)
+        {
+            UseShellExecute = true
+        };
+        Process.Start(info);
+    }
 
     public UIChessManager UiChessManager { get; private set; } = new();
     public BoardDrawer BoardDrawer { get; private set; } = new();

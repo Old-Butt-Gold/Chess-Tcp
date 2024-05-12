@@ -5,6 +5,7 @@ using System.Windows.Input;
 using ChessClient;
 using ChessLogic.Bot;
 using ChessLogic.CoordinateClasses;
+using Microsoft.Xaml.Behaviors;
 
 namespace ChessUI;
 
@@ -27,6 +28,7 @@ public partial class MainWindow
             },
         };
         ViewModel.ChessClient = ChessClient;
+        InputBindings.Add(new KeyBinding(ViewModel.ShowHelpCommand, Key.F1, ModifierKeys.None));
         DataContext = ViewModel;
     }
     
