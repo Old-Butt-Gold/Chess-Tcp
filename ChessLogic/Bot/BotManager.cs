@@ -28,7 +28,7 @@ public class BotManager : IDisposable
         else
         {
             IsCreatedBot = false;
-            MessageBox.Show("stockfish.exe wasn't found in ChessUI bin/");
+            MessageBox.Show("stockfish.exe wasn't found in current directory");
         }
     }
 
