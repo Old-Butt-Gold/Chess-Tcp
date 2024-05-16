@@ -48,6 +48,9 @@
       <None Remove="Assets\RookW.png" />
       <Resource Include="Assets\RookW.png" />
       <None Remove="Assets\1.cur" />
+      <None Update="stockfish.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
